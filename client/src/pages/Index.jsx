@@ -24,7 +24,7 @@ const Index = () => {
       if (!token) {
         throw new Error("No token found");
       }
-      const url = `http://localhost:8080/api/users`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -44,7 +44,7 @@ const Index = () => {
       if (!token) {
         throw new Error("No token found");
       }
-      const url = `http://localhost:8080/api/store`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/store`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,

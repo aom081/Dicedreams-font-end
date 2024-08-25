@@ -70,7 +70,7 @@ const ProfileEdit = () => {
 
       console.log("---->", updatedUserData);
       const response = await axios.put(
-        `http://localhost:8080/api/users/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
         updatedUserData,
         {
           headers: {
@@ -156,7 +156,7 @@ const ProfileEdit = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/users/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
         formData,
         {
           headers: {
@@ -229,7 +229,7 @@ const ProfileEdit = () => {
       if (!token) {
         throw new Error("No token found");
       }
-      const url = `http://localhost:8080/api/users/${user_id}`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,

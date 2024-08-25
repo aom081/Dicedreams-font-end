@@ -46,7 +46,7 @@ function EventCard(props) {
 
     const handleDeletePost = async () => {
         try {
-            await axios.delete(`http://localhost:8080/api/post_games/${eventId}`, {
+            await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/post_games/${eventId}`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
@@ -61,7 +61,7 @@ function EventCard(props) {
     useEffect(() => {
         const fetchUserDetails = async (id) => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/users/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },

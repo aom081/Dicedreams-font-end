@@ -118,7 +118,7 @@ const StoreAc = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/users/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
         formData,
         {
           headers: {
@@ -232,7 +232,7 @@ const StoreAc = () => {
       console.log("dataAc-->", dataAc);
 
       const response = await axios.put(
-        `http://localhost:8080/api/postActivity`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`,
         dataAc,
         {
           headers: {

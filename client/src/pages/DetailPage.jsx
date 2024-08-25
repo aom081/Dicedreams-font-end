@@ -26,7 +26,7 @@ const DetailsPage = () => {
 
         const loadEventDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'users_id': userId,

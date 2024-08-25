@@ -70,7 +70,7 @@ function LoginPage() {
 
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8080/api/auth", {
+      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/auth", {
         identifier: formData.identifier,
         password: formData.loginPassword,
       });
@@ -147,7 +147,7 @@ function LoginPage() {
         user_image: base64Image,
       };
 
-      const response = await axios.post("http://localhost:8080/api/users", dataToSend, {
+      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend, {
         headers: {
           "Content-Type": "application/json",
         },
