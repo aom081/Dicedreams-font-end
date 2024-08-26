@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Paper, Typography, Button, Box, Avatar, TextField } from '@mui/material';
+import { Container, Paper, Typography, Button, Box, Avatar, TextField, CircularProgress } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 const DetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { userId, accessToken, role } = useContext(AuthContext); // Fetch user details from AuthContext
+    const { userId, accessToken, role } = useContext(AuthContext);
 
     const [event, setEvent] = useState(null);
+    const [loading, setLoading] = useState(true); // Loading state
 
     useEffect(() => {
         if (!userId || !accessToken || !role) {
@@ -39,14 +40,24 @@ const DetailsPage = () => {
                 console.error('Failed to fetch event details', error);
                 alert('Failed to fetch event details. Please try again later.');
                 navigate('/');
+            } finally {
+                setLoading(false); // Stop loading once data is fetched
             }
         };
 
         loadEventDetails();
     }, [id, userId, accessToken, role, navigate]);
 
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <CircularProgress id="loading-spinner" />
+            </Box>
+        );
+    }
+
     if (!event) {
-        return <Typography variant="h6" id="loading">Loading...</Typography>;
+        return <Typography variant="h6" id="loading-failed">Failed to load event details</Typography>;
     }
 
     const {
@@ -79,7 +90,6 @@ const DetailsPage = () => {
                     Participants: {num_people || 1}
                 </Typography>
 
-                {/* Buttons for Event Owner */}
                 {isOwner ? (
                     <>
                         <Button
@@ -103,7 +113,7 @@ const DetailsPage = () => {
                         <Button
                             variant="outlined"
                             color="primary"
-                            onClick={() => navigate(`/edit-event/${id}`)} // This navigates to the EditGamePostPage
+                            onClick={() => navigate(`/edit-event/${id}`)}
                             sx={{ marginTop: 3, marginLeft: 2 }}
                             id="edit-post-button"
                         >
@@ -126,7 +136,7 @@ const DetailsPage = () => {
                             variant="contained"
                             color="error"
                             onClick={() => navigate('/')}
-                                sx={{ marginTop: 3}}
+                            sx={{ marginTop: 3 }}
                             id="join-button"
                         >
                             Join
@@ -135,7 +145,7 @@ const DetailsPage = () => {
                             variant="contained"
                             color="primary"
                             onClick={() => navigate('/')}
-                                sx={{ marginTop: 3, marginLeft: 2 }}
+                            sx={{ marginTop: 3, marginLeft: 2 }}
                             id="return-home-button"
                         >
                             Return to Home
