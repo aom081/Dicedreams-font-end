@@ -76,8 +76,12 @@ function LoginPage() {
       });
       const { access_token } = response.data;
       login(access_token);
-      navigate("/");
       setAlert({ open: true, message: "เข้าสู่ระบบสำเร็จ!", severity: "success" });
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1500); // Adjust the delay as needed
+
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -481,17 +485,18 @@ function LoginPage() {
               </Box>
           </Box>
         )}
-        <Snackbar
-          open={alert.open}
-          autoHideDuration={6000}
-          onClose={handleCloseAlert}
-          id="alert-snackbar"
-        >
-          <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "100%" }}>
-            {alert.message}
-          </Alert>
-        </Snackbar>
       </Box>
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        id="login-snackbar"
+      >
+        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "100%" }}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
