@@ -1,33 +1,24 @@
 import React, { useState, useContext } from 'react';
 import {
     AppBar, Toolbar, IconButton, Typography, Input, Box, Drawer,
-    List, ListItem, ListItemText, Button, Divider, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    List, ListItem, ListItemText, Button, Divider, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Avatar
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import InfoIcon from '@mui/icons-material/Info';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaCircleUser } from 'react-icons/fa6';
-import axios from 'axios';
-import FilterComponent from './FilterComponent';
 import { AuthContext } from '../Auth/AuthContext';
+import FilterComponent from './FilterComponent';
 
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const { accessToken, login, logout } = useContext(AuthContext);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const { accessToken, logout, username, profilePic } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
 
     const toggleDrawer = (open) => (event) => {
-        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-            return;
-        }
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) return;
         setDrawerOpen(open);
-    };
-
-    const handleSearchChange = (event) => {
-        setSearchQuery(event.target.value);
     };
 
     const handleSearchSubmit = (event) => {
@@ -37,42 +28,10 @@ const Navbar = () => {
         }
     };
 
-    const navigateToLogin = () => {
-        navigate('/login');
-    };
-
-    const navigateToRegister = () => {
-        navigate('/login?register=true');
-    };
-
-    const navigateToNotifications = () => {
-        navigate('/notifications');
-    };
-
-    const navigateToParticipationHistory = () => {
-        navigate('/participation-history');
-    };
-
-    const navigateToDetails = (eventId) => {
-        navigate(`/events/${eventId}`);
-    };
-
     const handleLogout = () => {
         logout();
         setDialogOpen(false);
         navigate('/');
-    };
-
-    const closeDrawer = () => {
-        setDrawerOpen(false);
-    };
-
-    const openDialog = () => {
-        setDialogOpen(true);
-    };
-
-    const closeDialog = () => {
-        setDialogOpen(false);
     };
 
     const drawerList = () => (
@@ -95,7 +54,7 @@ const Navbar = () => {
                 <ListItem
                     button
                     component={Link}
-                    to='/participation-history'
+                    to="/participation-history"
                     onClick={toggleDrawer(false)}
                     onKeyDown={toggleDrawer(false)}
                     id="participation-history-link"
@@ -135,7 +94,7 @@ const Navbar = () => {
                     <Typography variant="h6" id="filter-events-title">Filter Events</Typography>
                 </ListItem>
                 <ListItem>
-                    <FilterComponent onSearch={closeDrawer} id="filter-component" />
+                    <FilterComponent onSearch={() => setDrawerOpen(false)} id="filter-component" />
                 </ListItem>
             </List>
         </Box>
@@ -180,7 +139,7 @@ const Navbar = () => {
                 <Input
                     placeholder="Search..."
                     value={searchQuery}
-                    onChange={handleSearchChange}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchSubmit}
                     sx={{ marginLeft: 2 }}
                     id="search-input"
@@ -188,15 +147,61 @@ const Navbar = () => {
             </Box>
             {accessToken ? (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton color="inherit" onClick={() => navigate('/profile')} id="profile-button">
-                        <FaCircleUser size={24} />
-                    </IconButton>
-                    <Button color="inherit" onClick={openDialog} id="logout-button">Log out</Button>
+                    <Link
+                        to="/profile"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            padding: '5px 10px',
+                            borderRadius: '8px',
+                            color: 'white',
+                            backgroundColor: 'rgba(220, 20, 60, 0.5)' // Crimson color with 50% transparency
+                        }}
+
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                marginRight: '5px', // Initially no margin to hide the username
+                                fontWeight: 'bold',
+                            }}
+                            id="username"
+                        >
+                            {username}
+                        </Typography>
+                        <Avatar
+                            src={profilePic}
+                            alt={username}
+                            sx={{
+                                width: 40,
+                                height: 40,
+                                border: '2px solid white',
+                            }}
+                            id="profile-picture"
+                        />
+                    </Link>
+                    <Button
+                        color="inherit"
+                        onClick={() => setDialogOpen(true)}
+                        id="logout-button"
+                        sx={{
+                            marginLeft: '10px',
+                            color: 'white',
+                            border: '1px solid white',
+                            borderRadius: '8px',
+                            padding: '5px 10px'
+                        }}
+                    >
+                        Log out
+                    </Button>
                 </Box>
+
             ) : (
                 <>
-                    <Button color="inherit" onClick={navigateToLogin} id="login-button">Log in</Button>
-                    <Button variant="contained" color="primary" onClick={navigateToRegister} id="register-button">Register</Button>
+                    <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
+                    <Button variant="contained" color="primary" onClick={() => navigate('/login?register=true')} id="register-button">Register</Button>
                 </>
             )}
         </>
@@ -251,7 +256,7 @@ const Navbar = () => {
             </Toolbar>
             <Dialog
                 open={dialogOpen}
-                onClose={closeDialog}
+                onClose={() => setDialogOpen(false)}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
                 id="logout-dialog"
@@ -265,7 +270,7 @@ const Navbar = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialog} color="primary" id="cancel-logout-button">
+                    <Button onClick={() => setDialogOpen(false)} color="primary" id="cancel-logout-button">
                         Cancel
                     </Button>
                     <Button onClick={handleLogout} color="primary" autoFocus id="confirm-logout-button">
