@@ -4,7 +4,10 @@ import {
     List, ListItem, ListItemText, Button, Divider, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Avatar
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import LogoutIcon from '@mui/icons-material/Logout';
+import SearchIcon from '@mui/icons-material/Search'; // Import the search icon
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useMediaQuery } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 import FilterComponent from './FilterComponent';
 
@@ -15,6 +18,7 @@ const Navbar = () => {
     const { accessToken, logout, username, profilePic } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
+    const isMobile = useMediaQuery('(max-width: 400px)');
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) return;
@@ -121,9 +125,11 @@ const Navbar = () => {
             >
                 {drawerList()}
             </Drawer>
-            <Link to="/" id="logo-link">
-                <img src='logoDice.png' alt="DiceDreams Logo" id="logo-image" style={{ marginRight: '18px', height: '64px' }} />
-            </Link>
+            {!isMobile && (
+                <Link to="/" id="logo-link">
+                    <img src='logoDice.png' alt="DiceDreams Logo" id="logo-image" style={{ marginRight: '18px', height: '64px' }} />
+                </Link>
+            )}
             <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Typography
                     variant="h6"
@@ -136,41 +142,55 @@ const Navbar = () => {
                 </Typography>
             </Link>
             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, marginLeft: 2 }}>
-                <Input
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleSearchSubmit}
-                    sx={{ marginLeft: 2 }}
-                    id="search-input"
-                />
+                {isMobile ? (
+                    <IconButton color="inherit" onClick={() => navigate(`/index?search=${encodeURIComponent(searchQuery)}`)} id="search-icon">
+                        <SearchIcon />
+                    </IconButton>
+                ) : (
+                    <Input
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleSearchSubmit}
+                        sx={{ marginLeft: 2 }}
+                        id="search-input"
+                    />
+                )}
             </Box>
             {accessToken ? (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Link
-                        to="/profile"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            padding: '5px 10px',
-                            borderRadius: '8px',
-                            color: 'white',
-                            backgroundColor: 'rgba(220, 20, 60, 0.5)' // Crimson color with 50% transparency
-                        }}
-
-                    >
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                marginRight: '5px', // Initially no margin to hide the username
-                                fontWeight: 'bold',
-                            }}
-                            id="username"
-                        >
-                            {username}
-                        </Typography>
+                    <Box sx={{
+                        backgroundColor: 'rgba(220, 20, 60, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '5px 10px',
+                        borderRadius: '8px',
+                    }}>
+                        {!isMobile && (
+                            <Link
+                                to="/profile"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    textDecoration: 'none',
+                                    color: 'inherit',
+                                    padding: '5px 10px',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                }}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        marginRight: '5px',
+                                        fontWeight: 'bold',
+                                    }}
+                                    id="username"
+                                >
+                                    {username}
+                                </Typography>
+                            </Link>
+                        )}
                         <Avatar
                             src={profilePic}
                             alt={username}
@@ -181,23 +201,22 @@ const Navbar = () => {
                             }}
                             id="profile-picture"
                         />
-                    </Link>
-                    <Button
+                    </Box>
+
+                    <IconButton
                         color="inherit"
                         onClick={() => setDialogOpen(true)}
                         id="logout-button"
                         sx={{
                             marginLeft: '10px',
                             color: 'white',
-                            border: '1px solid white',
                             borderRadius: '8px',
-                            padding: '5px 10px'
+                            padding: '5px 10px',
                         }}
                     >
-                        Log out
-                    </Button>
+                        {isMobile ? <LogoutIcon /> : 'Log out'}
+                    </IconButton>
                 </Box>
-
             ) : (
                 <>
                     <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
@@ -228,9 +247,11 @@ const Navbar = () => {
             >
                 {drawerList()}
             </Drawer>
-            <Link to="/" id="basic-logo-link">
-                <img src='logoDice.png' alt="DiceDreams Logo" id="basic-logo-image" style={{ marginRight: '18px', height: '64px' }} />
-            </Link>
+            {!isMobile && (
+                <Link to="/" id="basic-logo-link">
+                    <img src='logoDice.png' alt="DiceDreams Logo" id="basic-logo-image" style={{ marginRight: '18px', height: '64px' }} />
+                </Link>
+            )}
             <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Typography
                     variant="h6"
@@ -252,20 +273,18 @@ const Navbar = () => {
             <Toolbar>
                 {location.pathname === '/login' || location.pathname === '/register'
                     ? renderBasicNavbar()
-                    : renderFullNavbar()}
+                    : renderFullNavbar()
+                }
             </Toolbar>
             <Dialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                id="logout-dialog"
+                aria-labelledby="logout-dialog-title"
+                aria-describedby="logout-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">
-                    {"Confirm Logout"}
-                </DialogTitle>
+                <DialogTitle id="logout-dialog-title">Logout</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
+                    <DialogContentText id="logout-dialog-description">
                         Are you sure you want to log out?
                     </DialogContentText>
                 </DialogContent>
@@ -274,12 +293,12 @@ const Navbar = () => {
                         Cancel
                     </Button>
                     <Button onClick={handleLogout} color="primary" autoFocus id="confirm-logout-button">
-                        Log out
+                        Logout
                     </Button>
                 </DialogActions>
             </Dialog>
         </AppBar>
     );
-}
+};
 
 export default Navbar;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem
+    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,11 @@ function EventCard(props) {
     const isMenuOpen = Boolean(anchorEl);
     const [username, setUsername] = useState(null);
     const [profilePic, setProfilePic] = useState(null);
+    const [alertMessage, setAlertMessage] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -46,22 +51,42 @@ function EventCard(props) {
 
     const handleDeletePost = async () => {
         try {
-            await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/post_games/${eventId}`, {
+            await axios.delete(`http://localhost:8080/api/postGame/${eventId}`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
             });
-            // Add any additional logic after deletion if necessary
+            setAlertMessage({
+                open: true,
+                message: 'Post has been successfully hidden.',
+                severity: 'success',
+            });
         } catch (error) {
             console.error('Failed to delete post', error);
+            setAlertMessage({
+                open: true,
+                message: 'Failed to hide the post. Please try again later.',
+                severity: 'error',
+            });
         }
         handleMenuClose();
+    };
+
+    const handleCloseAlert = () => {
+        setAlertMessage((prev) => ({ ...prev, open: false }));
+        setTimeout(() => {
+            setAlertMessage({
+                open: false,
+                message: '',
+                severity: 'success',
+            });
+        }, 0); // Reset immediately after closing
     };
 
     useEffect(() => {
         const fetchUserDetails = async (id) => {
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`, {
+                const response = await axios.get(`http://localhost:8080/api/users/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
@@ -139,7 +164,7 @@ function EventCard(props) {
                                 onClose={handleMenuClose}
                             >
                                 <MenuItem onClick={handleEditPost}>Edit</MenuItem>
-                                <MenuItem onClick={handleDeletePost}>Delete</MenuItem>
+                                <MenuItem onClick={handleDeletePost}>End Post</MenuItem>
                             </Menu>
                         </>
                     )
@@ -201,6 +226,19 @@ function EventCard(props) {
                     Chat
                 </Button>
             </CardActions>
+
+            {/* Snackbar Notification */}
+            <Snackbar
+                open={alertMessage.open}
+                autoHideDuration={1500} // Show the notification for 1.5 seconds
+                onClose={handleCloseAlert}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                id="snackbar"
+            >
+                <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: '100%' }}>
+                    {alertMessage.message}
+                </Alert>
+            </Snackbar>
         </Card>
     );
 }
