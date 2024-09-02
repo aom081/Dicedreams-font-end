@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Paper, Typography, Button, Box, Avatar, TextField, CircularProgress } from '@mui/material';
+import {
+    Container, Paper, Typography, Button, Box, Avatar, TextField,
+    Snackbar, Alert, Dialog, DialogActions, DialogContent,
+    DialogContentText, DialogTitle
+} from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
+import dayjs from 'dayjs';
 
 const DetailsPage = () => {
     const { id } = useParams();
@@ -10,24 +15,31 @@ const DetailsPage = () => {
     const { userId, accessToken, role } = useContext(AuthContext);
 
     const [event, setEvent] = useState(null);
-    const [loading, setLoading] = useState(true); // Loading state
+    const [isPostHidden, setIsPostHidden] = useState(false);
+    const [participants, setParticipants] = useState([]); // Assuming you fetch participants
+    const [alertMessage, setAlertMessage] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
+    const [openDialog, setOpenDialog] = useState(false); // State for managing dialog visibility
 
     useEffect(() => {
         if (!userId || !accessToken || !role) {
             alert('Please log in to access this page.');
-            navigate('/');
+            navigate('/login');
             return;
         }
 
         if (role !== 'user') {
             alert('You do not have permission to access this page.');
-            navigate('/');
+            navigate('/login');
             return;
         }
 
         const loadEventDetails = async () => {
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
+                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'users_id': userId,
@@ -36,28 +48,104 @@ const DetailsPage = () => {
 
                 console.log('Event details:', response.data);
                 setEvent(response.data);
+                setParticipants(response.data.participants || []); // Adjust based on your API response
             } catch (error) {
                 console.error('Failed to fetch event details', error);
                 alert('Failed to fetch event details. Please try again later.');
                 navigate('/');
-            } finally {
-                setLoading(false); // Stop loading once data is fetched
             }
         };
 
         loadEventDetails();
     }, [id, userId, accessToken, role, navigate]);
 
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <CircularProgress id="loading-spinner" />
-            </Box>
-        );
+    const notifyUserBeforeEndPost = () => {
+        setAlertMessage({
+            open: true,
+            message: 'The post will be ended shortly.',
+            severity: 'info',
+        });
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, 2000); // Notify for 2 seconds before proceeding
+        });
+    };
+
+    const handleEndPost = async () => {
+        try {
+            await notifyUserBeforeEndPost(); // Notify the user before ending the post
+
+            await axios.delete(`http://localhost:8080/api/postGame/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+
+            setIsPostHidden(true); // Hide the post after ending
+            setAlertMessage({
+                open: true,
+                message: 'Post has been ended successfully.',
+                severity: 'success',
+            });
+
+            setTimeout(() => {
+                setAlertMessage({ open: false, message: '', severity: 'success' });
+                navigate('/'); // Redirect to home or another appropriate page
+            }, 1500); // 1.5 seconds delay before resetting the alert
+        } catch (error) {
+            console.error('Failed to end post', error);
+            setAlertMessage({
+                open: true,
+                message: 'Failed to end the post. Please try again.',
+                severity: 'error',
+            });
+            setTimeout(() => {
+                setAlertMessage({ open: false, message: '', severity: 'error' });
+            }, 1500);
+        }
+    };
+
+    // Automatically hide the post when current time matches appointment time
+    useEffect(() => {
+        if (!event) return;
+
+        const checkTimeToHidePost = () => {
+            const currentTime = dayjs();
+            const appointmentTime = dayjs(`${event.date_meet} ${event.time_meet}`);
+
+            if (currentTime.isAfter(appointmentTime)) {
+                handleEndPost(); // End the post automatically
+            }
+        };
+
+        // Initial check
+        checkTimeToHidePost();
+
+        // Set interval to check every minute
+        const intervalId = setInterval(checkTimeToHidePost, 60000); // 60,000 ms = 1 minute
+
+        return () => clearInterval(intervalId); // Cleanup on component unmount
+    }, [event]);
+
+    const confirmEndPost = () => {
+        setOpenDialog(true); // Show confirmation dialog
+    };
+
+    const handleDialogClose = (confirmed) => {
+        setOpenDialog(false);
+        if (confirmed) {
+            handleEndPost(); // Proceed with deletion if confirmed
+        }
+    };
+
+    if (isPostHidden) {
+        return null; // Do not render the page if the post is hidden
     }
 
     if (!event) {
-        return <Typography variant="h6" id="loading-failed">Failed to load event details</Typography>;
+        return <Typography variant="h6" id="loading">Loading...</Typography>;
     }
 
     const {
@@ -67,6 +155,7 @@ const DetailsPage = () => {
         date_meet,
         time_meet,
         users_id: eventOwnerId,
+        image,
     } = event;
 
     const isOwner = userId === eventOwnerId;
@@ -78,18 +167,24 @@ const DetailsPage = () => {
                     {name_games || 'Untitled Event'}
                 </Typography>
                 <Typography variant="body1" gutterBottom id="event-date-time">
-                    {`${new Date(date_meet).toLocaleDateString()} at ${new Date(`1970-01-01T${time_meet}Z`).toLocaleTimeString()}`}
+                    {`${dayjs(date_meet).format('MMM DD YYYY')} at ${dayjs(time_meet, 'HH:mm:ss').format('h:mm A')}`}
                 </Typography>
+                {image && (
+                    <Box sx={{ marginTop: 2, marginBottom: 2 }}>
+                        <img src={image} alt="Event" style={{ width: '100%', height: 'auto' }} />
+                    </Box>
+                )}
                 <Typography variant="body1" gutterBottom id="event-detail">
                     {detail_post || 'No content available'}
                 </Typography>
                 <Typography variant="body1" gutterBottom id="event-location">
-                    Location: ร้าน outcast gaming
+                    Location: ร้าน Outcast Gaming
                 </Typography>
                 <Typography variant="body1" gutterBottom id="event-participants">
                     Participants: {num_people || 1}
                 </Typography>
 
+                {/* Buttons for Event Owner */}
                 {isOwner ? (
                     <>
                         <Button
@@ -123,7 +218,7 @@ const DetailsPage = () => {
                         <Button
                             variant="contained"
                             color="error"
-                            onClick={() => {/* Add logic to end the post */ }}
+                            onClick={confirmEndPost}
                             sx={{ marginTop: 3, marginLeft: 2 }}
                             id="end-post-button"
                         >
@@ -135,7 +230,7 @@ const DetailsPage = () => {
                         <Button
                             variant="contained"
                             color="error"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/join-event', { state: { eventId: id } })}
                             sx={{ marginTop: 3 }}
                             id="join-button"
                         >
@@ -159,29 +254,83 @@ const DetailsPage = () => {
                     Participants
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 3 }}>
-                    <Avatar alt="Participant 1" src="https://via.placeholder.com/40" id="participant-avatar-1" />
-                    <Avatar alt="Participant 2" src="https://via.placeholder.com/40" id="participant-avatar-2" />
-                    {/* Add more participants as needed */}
+                    {participants.length > 0 ? (
+                        participants.map((participant, index) => (
+                            <Avatar
+                                key={index}
+                                alt={participant.username}
+                                src={participant.user_image || "https://via.placeholder.com/40"}
+                                id={`participant-avatar-${index + 1}`}
+                            />
+                        ))
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">
+                            No participants yet.
+                        </Typography>
+                    )}
                 </Box>
             </Paper>
 
-            <Paper elevation={3} sx={{ padding: 5, marginTop: 4, backgroundColor: '#2c2c2c', color: 'white' }} id="chat-section">
-                <Typography variant="h5" gutterBottom id="chat-title">
-                    Chat
+            <Paper elevation={3} sx={{ padding: 5, marginTop: 4, backgroundColor: '#2c2c2c', color: 'white' }} id="comments-section">
+                <Typography variant="h5" gutterBottom id="comments-title">
+                    Comments
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', marginTop: 2 }}>
-                    <TextField
-                        variant="outlined"
-                        placeholder="Add a chat..."
-                        fullWidth
-                        sx={{ input: { color: 'white' }, backgroundColor: '#1c1c1c', borderRadius: '4px' }}
-                        id="chat-input"
-                    />
-                    <Button variant="contained" color="error" id="send-chat-button">
-                        Send
-                    </Button>
-                </Box>
+                <TextField
+                    id="comment-input"
+                    label="Leave a comment..."
+                    variant="outlined"
+                    multiline
+                    fullWidth
+                    rows={4}
+                    sx={{ marginTop: 2, marginBottom: 2, backgroundColor: 'white' }}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ marginTop: 3, marginLeft: 2 }}
+                    id="submit-comment-button"
+                >
+                    Submit Comment
+                </Button>
             </Paper>
+
+            <Snackbar
+                open={alertMessage.open}
+                autoHideDuration={6000}
+                onClose={() => setAlertMessage({ open: false, message: '', severity: 'success' })}
+                id="notification"
+            >
+                <Alert
+                    onClose={() => setAlertMessage({ open: false, message: '', severity: 'success' })}
+                    severity={alertMessage.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {alertMessage.message}
+                </Alert>
+            </Snackbar>
+
+            {/* Confirmation Dialog */}
+            <Dialog
+                open={openDialog}
+                onClose={() => handleDialogClose(false)}
+                aria-labelledby="confirm-dialog-title"
+                aria-describedby="confirm-dialog-description"
+            >
+                <DialogTitle id="confirm-dialog-title">{"Confirm End Post"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="confirm-dialog-description">
+                        Are you sure you want to end this post? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleDialogClose(false)} color="primary" id="cancel-button">
+                        Cancel
+                    </Button>
+                    <Button onClick={() => handleDialogClose(true)} color="error" id="confirm-end-button">
+                        End Post
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
