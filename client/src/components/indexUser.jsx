@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Box,
   Typography,
   Avatar,
-  CircularProgress,
-  Alert,
   IconButton,
   Menu,
   MenuItem,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MailIcon from "@mui/icons-material/Mail";
-import { useNavigate } from "react-router-dom";
 
-const indexParti = ({ user }) => {
-
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const IndexUser = ({ data, imgU, nameU }) => {
+  const [clicked, setClicked] = useState(false);
+  const [posts, setPosts] = useState(data || []);
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,34 +22,10 @@ const indexParti = ({ user }) => {
   const options = ["เข้าร่วม", "แก้ไขชื่อ", "อื่นๆ"];
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No token found");
-        }
-
-        const response = await axios.get(
-          `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
-          // `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/${user.users_id}`, // real
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setPosts(response.data);
-        setLoading(false);
-        console.log("res-->", response.data);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [user.users_id]);
+    if (data) {
+      setPosts(data);
+    }
+  }, [data]);
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -95,23 +66,57 @@ const indexParti = ({ user }) => {
     const date = new Date(dateString);
     const day = date.getDate();
     const month = date.getMonth();
-    const year = date.getFullYear() + 543; // Buddhist Era is 543 years ahead
+    const year = date.getFullYear();
     const weekday = thaiDays[date.getDay()];
 
     // Format time as HH.MM น.
     const [hours, minutes] = timeString.split(":");
     const formattedTime = `${hours}.${minutes} น.`;
 
-    return `${weekday} ที่ ${day} ${thaiMonths[month]} พ.ศ.${year} เวลา ${formattedTime}`;
+    return `${weekday}ที่ ${day} ${thaiMonths[month]} พ.ศ.${year} เวลา ${formattedTime}`;
   };
 
-  if (loading) {
-    return <CircularProgress />;
-  }
+  const chatClick = () => {
+    setClicked(true);
+    setTimeout(() => {
+      setClicked(false);
+    }, 3000);
+  };
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
+  const fromDateNDay = (dateStr) => {
+    const date = new Date(dateStr);
+
+    const thaiYear = date.getUTCFullYear() + 543;
+
+    // Format the month and time
+    const monthsThai = [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ];
+
+    const day = date.getUTCDate();
+    const month = monthsThai[date.getUTCMonth()];
+    const hour = date.getUTCHours();
+    const minute = date.getUTCMinutes();
+
+    // Format time with leading zero if needed
+    const formattedTime = `${hour.toString().padStart(2, "0")}:${minute
+      .toString()
+      .padStart(2, "0")} น.`;
+
+    // Combine the date and time
+    return `${day} ${month} เวลา ${formattedTime}`;
+  };
 
   return (
     <Box sx={{ padding: 2, color: "white" }}>
@@ -137,15 +142,15 @@ const indexParti = ({ user }) => {
               }}
             >
               <Avatar
-                src={user.user_image || "https://via.placeholder.com/40"} // Default avatar
+                src={imgU || "https://via.placeholder.com/40"} // Default avatar
                 sx={{ width: 40, height: 40, marginRight: 2 }}
               />
               <Box>
                 <Typography variant="body1" sx={{ color: "white" }}>
-                  {user.username || "Unknown User"}
+                  {nameU || "Unknown User"}
                 </Typography>
                 <Typography variant="body2" sx={{ color: "gray" }}>
-                  {post.date_meet}
+                  {fromDateNDay(post.creation_date)}
                 </Typography>
               </Box>
 
@@ -206,7 +211,7 @@ const indexParti = ({ user }) => {
 
             <Box
               sx={{
-                textAlign: "Left",
+                textAlign: "left",
                 marginLeft: 10,
                 marginRight: 10,
                 marginBottom: 1,
@@ -225,7 +230,7 @@ const indexParti = ({ user }) => {
                 {post.detail_post}
               </Typography>
               <Typography variant="body2" sx={{ color: "white", marginTop: 2 }}>
-                {`สถานที่: ${post.loaction ? post.loaction : "เดี๋ยวบอก"}`}
+                {`สถานที่: ${post.loaction ? post.loaction : "????"}`}
               </Typography>
               <Typography variant="body2" sx={{ color: "white" }}>
                 {`จำนวนคนจะไป: 1/${post.num_people}`}
@@ -256,8 +261,19 @@ const indexParti = ({ user }) => {
                     width: "100%",
                   }}
                 >
-                  <MailIcon />
-                  <Typography variant="body1">Chat</Typography>
+                  {clicked ? (
+                    <>
+                      <CircularProgress size={20} color="inherit" />
+                      <Typography variant="body1">
+                        New feature is coming soon
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <MailIcon />
+                      <Typography variant="body1">Chat</Typography>
+                    </>
+                  )}
                 </Button>
               </Box>
             </Box>
@@ -268,4 +284,4 @@ const indexParti = ({ user }) => {
   );
 };
 
-export default indexParti;
+export default IndexUser;

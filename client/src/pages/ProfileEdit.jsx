@@ -70,7 +70,7 @@ const ProfileEdit = () => {
 
       console.log("---->", updatedUserData);
       const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
+        `http://localhost:8080/api/users/${user_id}`,
         updatedUserData,
         {
           headers: {
@@ -81,8 +81,11 @@ const ProfileEdit = () => {
       );
 
       console.log("User updated successfully", response.data);
+      
+      window.alert("User updated successfully!");
       navigate("/profile");
     } catch (error) {
+      window.alert("Failed to update user. Please try again.");
       console.error("Error updating user", error);
     }
   };
@@ -156,7 +159,7 @@ const ProfileEdit = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
+        `http://localhost:8080/api/users/${user_id}`,
         formData,
         {
           headers: {
@@ -229,7 +232,7 @@ const ProfileEdit = () => {
       if (!token) {
         throw new Error("No token found");
       }
-      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`;
+      const url = `http://localhost:8080/api/users/${user_id}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -256,7 +259,7 @@ const ProfileEdit = () => {
 
   function transformDateFormat(date) {
     if (dayjs.isDayjs(date)) {
-      return date.format("MM-DD-YYYY"); 
+      return date.format("MM-DD-YYYY");
     } else {
       console.error("Provided date is not a dayjs object:", date);
       const [year, month, day] = date.split("-");

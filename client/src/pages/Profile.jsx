@@ -43,7 +43,7 @@ const Profile = () => {
         return;
       }
 
-      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${userId}`;
+      const url = `http://localhost:8080/api/users/${userId}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,

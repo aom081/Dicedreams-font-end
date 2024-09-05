@@ -6,6 +6,8 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search'; // Import the search icon
+import LoginIcon from '@mui/icons-material/Login';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
@@ -18,7 +20,7 @@ const Navbar = () => {
     const { accessToken, logout, username, profilePic } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
-    const isMobile = useMediaQuery('(max-width: 400px)');
+    const isMobile = useMediaQuery('(max-width: 600px)');
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) return;
@@ -159,13 +161,13 @@ const Navbar = () => {
             </Box>
             {accessToken ? (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{
-                        backgroundColor: 'rgba(220, 20, 60, 0.5)',
-                        display: 'flex',
+                    <Box sx={{ 
+                        backgroundColor: 'rgba(220, 20, 60, 0.5)', 
+                        display: 'flex', 
                         alignItems: 'center',
                         padding: '5px 10px',
                         borderRadius: '8px',
-                    }}>
+                         }}>
                         {!isMobile && (
                             <Link
                                 to="/profile"
@@ -176,7 +178,6 @@ const Navbar = () => {
                                     color: 'inherit',
                                     padding: '5px 10px',
                                     borderRadius: '8px',
-                                    color: 'white',
                                 }}
                             >
                                 <Typography
@@ -202,7 +203,7 @@ const Navbar = () => {
                             id="profile-picture"
                         />
                     </Box>
-
+                    
                     <IconButton
                         color="inherit"
                         onClick={() => setDialogOpen(true)}
@@ -218,10 +219,23 @@ const Navbar = () => {
                     </IconButton>
                 </Box>
             ) : (
-                <>
-                    <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
-                    <Button variant="contained" color="primary" onClick={() => navigate('/login?register=true')} id="register-button">Register</Button>
-                </>
+                    <>
+                        {isMobile ? (
+                            <>
+                                <IconButton color="inherit" onClick={() => navigate('/login')} id="login-icon">
+                                    <LoginIcon />
+                                </IconButton>
+                                <IconButton color="primary" onClick={() => navigate('/login?register=true')} id="register-icon">
+                                    <AppRegistrationIcon />
+                                </IconButton>
+                            </>
+                        ) : (
+                            <>
+                                <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
+                                <Button variant="contained" color="primary" onClick={() => navigate('/login?register=true')} id="register-button">Register</Button>
+                            </>
+                        )}
+                    </>
             )}
         </>
     );

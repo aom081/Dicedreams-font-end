@@ -112,7 +112,7 @@ const CreatePost = () => {
     };
 
     try {
-      const response = await fetch('https://dicedreams-backend-deploy-to-render.onrender.com/api/PostGame', {
+      const response = await fetch('http://localhost:8080/api/PostGame', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -240,13 +240,26 @@ function LoginPage() {
         id="login-page-content-box"
       >
         <ButtonGroup variant="text" fullWidth id="login-register-button-group">
-          <Button onClick={() => setIsRegister(false)} id="login-button">
-            <Typography style={{ color: "#FFFFFF" }}>Log In</Typography>
+          <Button
+            onClick={() => setIsRegister(false)}
+            id="login-button"
+            style={{
+              color: isRegister ? "#FFFFFF" : "crimson", // Crimson for login button when on login page
+            }}
+          >
+            <Typography style={{ color: "inherit" }}>Log In</Typography>
           </Button>
-          <Button onClick={() => setIsRegister(true)} id="register-button">
-            <Typography style={{ color: "#FFFFFF" }}>Register</Typography>
+          <Button
+            onClick={() => setIsRegister(true)}
+            id="register-button"
+            style={{
+              color: isRegister ? "crimson" : "#FFFFFF", // Crimson for register button when on register page
+            }}
+          >
+            <Typography style={{ color: "inherit" }}>Register</Typography>
           </Button>
         </ButtonGroup>
+
         {isRegister ? (
           <Box width="100%" id="register-form">
             <Box
@@ -455,34 +468,34 @@ function LoginPage() {
                 ),
               }}
             />
-              <Box mt={4} display="flex" justifyContent="center" gap={2}>
-                <Button
-                  variant="contained"
-                  onClick={handleLogin}
-                  disabled={loading}
-                  fullWidth
-                  id="login-submit-button"
-                  style={{
-                    backgroundColor: "crimson",
-                    color: "white",
-                  }}
-                >
-                  {loading ? <CircularProgress size={24} style={{ color: "white" }} /> : "Log In"}
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={handleCancel}
-                  fullWidth
-                  id="cancel-login-button"
-                  style={{
-                    color: "white",
-                    borderColor: "white",
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Box>
+            <Box mt={4} display="flex" justifyContent="center" gap={2}>
+              <Button
+                variant="contained"
+                onClick={handleLogin}
+                disabled={loading}
+                fullWidth
+                id="login-submit-button"
+                style={{
+                  backgroundColor: "crimson",
+                  color: "white",
+                }}
+              >
+                {loading ? <CircularProgress size={24} style={{ color: "white" }} /> : "Log In"}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                fullWidth
+                id="cancel-login-button"
+                style={{
+                  color: "white",
+                  borderColor: "white",
+                  backgroundColor: "transparent",
+                }}
+              >
+                Cancel
+              </Button>
+            </Box>
           </Box>
         )}
       </Box>

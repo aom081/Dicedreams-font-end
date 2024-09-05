@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import axios from "axios";
 import {
   Box,
@@ -10,6 +10,8 @@ import {
   Menu,
   MenuItem,
   Button,
+  LinearProgress,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -66,6 +68,30 @@ const StoreAc = () => {
     });
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const files = e.dataTransfer.files;
+
+    if (files.length > 0) {
+      const file = files[0];
+      handleFileUpload(file);
+    }
+  };
+
+  const chooseFile = () => {
+    fileInputRef.current.click();
+  };
+
   const handleFileUpload = async (file) => {
     setImagePreview(URL.createObjectURL(file));
     setUploading(true);
@@ -94,181 +120,112 @@ const StoreAc = () => {
     }
 
     try {
-      const user_id = localStorage.getItem("users_id");
+      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
       const token = localStorage.getItem("access_token");
+
       if (!token) {
-        throw new Error("No token found");
+        alert("No token found. Please login.");
+        setUploading(false);
+        return;
       }
 
       const base64Image = await convertImageToBase64(file);
 
-      let birthDay = transformDateFormat(user.birthday);
+      let dataAc = {
+        name_activity: acName || "no_data_now",
+        status_post: "active",
+        detail_post: acDetail || "no_data_now",
+        date_activity: eventDate
+          ? eventDate.format("YYYY-MM-DD")
+          : "no_data_now",
+        time_activity: eventTime ? eventTime.format("HH:mm:ss") : "no_data_now",
+        post_activity_image: base64Image,
+        store_id: user_id || "no_data_now",
+      };
+
+      await axios.post(`http://localhost:8080/api/postActivity`, dataAc, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        onUploadProgress: (progressEvent) => {
+          const { loaded, total } = progressEvent;
+          let percentCompleted = Math.floor((loaded * 100) / total);
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      setUploading(false);
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploadProgress(0);
+        setImagePreview(null);
+      }, 2000);
+    } catch (error) {
+      setUploading(false);
+      setUploadProgress(0);
+      setUploadError("File upload failed");
+      console.error("Error uploading file", error);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        alert("No token found. Please login.");
+        return;
+      }
+
+      if (!acName) {
+        alert("กรุณาใส่ ชื่อเรื่อง");
+        return;
+      }
+      if (!acDetail) {
+        alert("กรุณาใส่ รายละเอียด");
+        return;
+      }
+      if (!eventDate) {
+        alert("กรุณาเลือกวันที่");
+        return;
+      }
+      if (!eventTime) {
+        alert("กรุณาเลือกเวลา");
+        return;
+      }
 
       const formData = {
-        id: user_id || "no_data_now",
-        first_name: firstName || "no_data_now",
-        last_name: lastName || "no_data_now",
-        username: user.username || "no_data_now",
-        email: user.email || "no_data_now",
-        birthday: birthDay || "no_data_now",
-        phone_number: phoneNumber || "no_data_now",
-        gender: user.gender || "no_data_now",
-        user_image: base64Image || "no_data_now",
+        name_activity: acName,
+        status_post: "active",
+        detail_post: acDetail,
+        date_activity: eventDate.format("YYYY-MM-DD"),
+        time_activity: eventTime.format("HH:mm:ss"),
+        store_id: user_id,
       };
+
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`,
+        `http://localhost:8080/api/store/${user_id}`,
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            let percentCompleted = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentCompleted);
-          },
         }
       );
-
-      setUploading(false);
-      setUploadProgress(100);
-      setUploadedImageUrl(response.data.user_image);
-
-      setUser((prevUser) => ({
-        ...prevUser,
-        user_image: response.data.user_image,
-      }));
 
       console.log("File uploaded and user updated successfully", response.data);
       console.log("Uploaded Image URL:-->", uploadedImageUrl);
 
-      // Wait for 2 seconds before clearing the upload progress and calling getUser
       setTimeout(() => {
-        setUploadProgress(0);
-        getUser();
+        getStore();
       }, 2000);
     } catch (error) {
-      setUploading(false);
-      setUploadProgress(0);
-      setUploadError("File upload failed");
-      console.error("Error uploading file", error);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragging(false);
-  };
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const files = e.dataTransfer.files;
-
-    if (files.length > 0) {
-      const file = files[0];
-      console.log(files);
-      handleFileUpload(file);
-    }
-  };
-
-  const chooseFile = () => {
-    fileInputRef.current.click();
-  };
-
-  const createAc = async (file) => {
-    setImagePreview(URL.createObjectURL(file));
-    setUploading(true);
-    setUploadProgress(0);
-    setUploadError(null);
-    setShowUploadBar(true);
-
-    if (file.size > 3000000) {
-      alert("ขนาดไฟล์เกิน 3 MB");
-      setUploading(false);
-      return;
-    }
-
-    if (
-      ![
-        "image/jpeg",
-        "image/svg+xml",
-        "image/png",
-        "image/jpg",
-        "image/gif",
-      ].includes(file.type)
-    ) {
-      alert("กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ");
-      setUploading(false);
-      return;
-    }
-    try {
-      const user_id = localStorage.getItem("users_id");
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        throw new Error("No token found");
-      }
-
-      const base64Image = await convertImageToBase64(file);
-      let dataAc = {
-        name_activity: acName,
-        status_post: "active",
-        creation_date: useNow(),
-        detail_post: acDetail,
-        date_activity: eventDate,
-        time_activity: eventTime,
-        post_activity_image: base64Image,
-        store_id: user_id,
-      };
-
-      console.log("dataAc-->", dataAc);
-
-      const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`,
-        dataAc,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            let percentCompleted = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentCompleted);
-          },
-        }
-      );
-
-      setUploading(false);
-      setUploadProgress(100);
-      setUploadedImageUrl(response.data.user_image);
-
-      setUser((prevUser) => ({
-        ...prevUser,
-        user_image: response.data.user_image,
-      }));
-
-      console.log("File uploaded and user updated successfully", response.data);
-      console.log("Uploaded Image URL:-->", uploadedImageUrl);
-
-      // Wait for 2 seconds before clearing the upload progress and calling getUser
-      setTimeout(() => {
-        setUploadProgress(0);
-        getUser();
-      }, 2000);
-    } catch (error) {
-      setUploading(false);
-      setUploadProgress(0);
-      setUploadError("File upload failed");
-      console.error("Error uploading file", error);
+      console.error("Error updating store", error);
     }
   };
 
@@ -513,13 +470,14 @@ const StoreAc = () => {
         )}
 
         <Button
-          //   onClick={updateUser}
+          onClick={handleSave}
           sx={{
             color: "#fff",
-            backgroundColor: "#AB003B",
-            borderColor: "#AB003B",
+            width: "100%",
+            backgroundColor: "#0B6BCB",
+            borderColor: "#0B6BCB",
             "&:hover": {
-              backgroundColor: "#AB003B",
+              backgroundColor: "#0B6BCB",
             },
           }}
         >

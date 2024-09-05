@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert
+    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -11,16 +11,8 @@ import { AuthContext } from '../Auth/AuthContext';
 
 function EventCard(props) {
     const {
-        userId, // The users_id from the post_games table
-        postTime,
-        image,
-        nameGames,
-        dateMeet,
-        timeMeet,
-        detailPost,
-        numPeople,
-        maxParticipants,
-        eventId,
+        userId, postTime, image, nameGames, dateMeet, timeMeet,
+        detailPost, numPeople, maxParticipants, eventId,
     } = props;
 
     const navigate = useNavigate();
@@ -35,6 +27,7 @@ function EventCard(props) {
         message: '',
         severity: 'success',
     });
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -49,39 +42,93 @@ function EventCard(props) {
         handleMenuClose();
     };
 
-    const handleDeletePost = async () => {
+    const handleEndPost = async () => {
         try {
-            await axios.delete(`http://localhost:8080/api/postGame/${eventId}`, {
+            setOpenConfirmDialog(false);
+
+            // Send a PUT request to update the status of the post
+            await axios.put(`http://localhost:8080/api/postGame/${eventId}`, {
+                status_post: 'unActive',
+            }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
             });
+
             setAlertMessage({
                 open: true,
-                message: 'Post has been successfully hidden.',
+                message: 'The event has been successfully marked as inactive.',
                 severity: 'success',
             });
+
+            // Optionally, refresh the page or redirect to the home page after a short delay
+            setTimeout(() => {
+                setAlertMessage({ open: false, message: '', severity: 'success' });
+                navigate('/'); // Redirect or refresh the page
+            }, 500); // 0.5 seconds delay before redirecting
         } catch (error) {
             console.error('Failed to delete post', error);
             setAlertMessage({
                 open: true,
-                message: 'Failed to hide the post. Please try again later.',
+                message: 'Failed to delete the post. Please try again.',
                 severity: 'error',
             });
+            setTimeout(() => {
+                setAlertMessage({ open: false, message: '', severity: 'error' });
+            }, 500);
         }
-        handleMenuClose();
     };
 
     const handleCloseAlert = () => {
         setAlertMessage((prev) => ({ ...prev, open: false }));
-        setTimeout(() => {
-            setAlertMessage({
-                open: false,
-                message: '',
-                severity: 'success',
-            });
-        }, 0); // Reset immediately after closing
     };
+
+    const handleConfirmEndPost = () => {
+        setOpenConfirmDialog(true);
+    };
+
+    const handleCancelEndPost = () => {
+        setOpenConfirmDialog(false);
+    };
+
+    useEffect(() => {
+        const checkEventTime = async () => {
+            if (dateMeet && timeMeet) {
+                const eventTime = dayjs(`${dateMeet} ${timeMeet}`, 'YYYY-MM-DD HH:mm:ss');
+                const currentTime = dayjs();
+
+                if (currentTime.isAfter(eventTime)) {
+                    try {
+                        // Mark the post as inactive
+                        await axios.put(`http://localhost:8080/api/postGame/${eventId}/status`, {
+                            status_post: 'unActive',
+                        }, {
+                            headers: { Authorization: `Bearer ${accessToken}` },
+                        });
+
+                        // Show notification about the post being inactive
+                        setAlertMessage({
+                            open: true,
+                            message: 'Event time has passed. Post is now inactive.',
+                            severity: 'info',
+                        });
+
+                        // Delay 0.5 seconds before refreshing the website
+                        setTimeout(() => {
+                            setAlertMessage({ open: false, message: '', severity: 'info' });
+                            window.location.reload(); // Reload the website
+                        }, 500); // 0.5 seconds delay
+                    } catch (error) {
+                        console.error('Failed to update post status', error);
+                    }
+                }
+            }
+        };
+
+        const interval = setInterval(checkEventTime, 2000);
+        return () => clearInterval(interval);
+    }, [dateMeet, timeMeet, eventId, accessToken]);
+
 
     useEffect(() => {
         const fetchUserDetails = async (id) => {
@@ -162,36 +209,36 @@ function EventCard(props) {
                                 anchorEl={anchorEl}
                                 open={isMenuOpen}
                                 onClose={handleMenuClose}
+                                MenuListProps={{ 'aria-labelledby': 'basic-button' }}
                             >
-                                <MenuItem onClick={handleEditPost}>Edit</MenuItem>
-                                <MenuItem onClick={handleDeletePost}>End Post</MenuItem>
+                                <MenuItem onClick={handleEditPost} id={`event-menu-edit-${eventId}`}>Edit</MenuItem>
+                                <MenuItem onClick={handleConfirmEndPost} id={`event-menu-end-${eventId}`}>End Post</MenuItem>
                             </Menu>
                         </>
                     )
                 }
                 title={username || 'Unknown User'}
-                subheader={postTime ? dayjs(postTime).format('MMM DD YYYY h:mm A') : 'Unknown Time'}
-                sx={{ color: 'white' }}
+                subheader={postTime ? dayjs(postTime).format('MMM DD, YYYY') : 'Unknown Date'}
             />
             <CardMedia
                 component="img"
-                sx={{ width: '100%', height: 'auto' }}
-                image={image || ''}
-                alt="Event image"
+                height="194"
+                image={image || 'https://via.placeholder.com/150'}
+                alt={nameGames || 'No game image'}
                 id={`event-image-${eventId}`}
             />
-            <CardContent id={`event-card-content-${eventId}`} sx={{ color: 'white' }}>
-                <Typography variant="h6" component="div" id={`event-name-${eventId}`}>
-                    {nameGames || 'Untitled Event'}
+            <CardContent>
+                <Typography variant="h5" color="text.secondary" id={`event-title-${eventId}`}>
+                    {nameGames || 'Unknown Game'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" id={`event-date-time-${eventId}`}>
                     {formattedDateMeet} at {formattedTimeMeet}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" id={`event-detail-${eventId}`}>
-                    {detailPost || 'No content available'}
+                    {detailPost || 'No details available'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" id={`event-participants-${eventId}`}>
-                    Participants: {numPeople || 0}/{maxParticipants || '1'}
+                    Participants: {numPeople}/{maxParticipants || 'N/A'}
                 </Typography>
             </CardContent>
             <CardActions disableSpacing sx={{ justifyContent: 'space-between', padding: '16px' }}>
@@ -227,13 +274,35 @@ function EventCard(props) {
                 </Button>
             </CardActions>
 
-            {/* Snackbar Notification */}
+            {/* Confirmation Dialog for Ending Post */}
+            <Dialog
+                open={openConfirmDialog}
+                onClose={handleCancelEndPost}
+                aria-labelledby="confirm-dialog-title"
+                aria-describedby="confirm-dialog-description"
+            >
+                <DialogTitle id="confirm-dialog-title">Confirm End Post</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="confirm-dialog-description">
+                        Are you sure you want to mark this post as inactive? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelEndPost} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleEndPost} color="secondary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Notification Snackbar */}
             <Snackbar
                 open={alertMessage.open}
-                autoHideDuration={1500} // Show the notification for 1.5 seconds
+                autoHideDuration={6000}
                 onClose={handleCloseAlert}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                id="snackbar"
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: '100%' }}>
                     {alertMessage.message}
@@ -247,7 +316,7 @@ EventCard.propTypes = {
     userId: PropTypes.string.isRequired,
     postTime: PropTypes.string,
     image: PropTypes.string,
-    nameGames: PropTypes.string,
+    nameGames: PropTypes.string.isRequired,
     dateMeet: PropTypes.string,
     timeMeet: PropTypes.string,
     detailPost: PropTypes.string,

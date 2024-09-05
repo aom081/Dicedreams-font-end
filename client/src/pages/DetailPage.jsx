@@ -77,16 +77,18 @@ const DetailsPage = () => {
         try {
             await notifyUserBeforeEndPost(); // Notify the user before ending the post
 
-            await axios.delete(`http://localhost:8080/api/postGame/${id}`, {
+            // Send a PUT request to update the status of the post
+            await axios.put(`http://localhost:8080/api/postGame/${id}`, {
+                status_post: 'unActive', // Update the status to 'unActive'
+            }, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
             });
 
-            setIsPostHidden(true); // Hide the post after ending
             setAlertMessage({
                 open: true,
-                message: 'Post has been ended successfully.',
+                message: 'Post has been marked as unActive successfully.',
                 severity: 'success',
             });
 
@@ -95,10 +97,10 @@ const DetailsPage = () => {
                 navigate('/'); // Redirect to home or another appropriate page
             }, 1500); // 1.5 seconds delay before resetting the alert
         } catch (error) {
-            console.error('Failed to end post', error);
+            console.error('Failed to update post status', error);
             setAlertMessage({
                 open: true,
-                message: 'Failed to end the post. Please try again.',
+                message: 'Failed to update the post status. Please try again.',
                 severity: 'error',
             });
             setTimeout(() => {
@@ -106,6 +108,7 @@ const DetailsPage = () => {
             }, 1500);
         }
     };
+
 
     // Automatically hide the post when current time matches appointment time
     useEffect(() => {

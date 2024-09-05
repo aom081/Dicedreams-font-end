@@ -31,6 +31,10 @@ const UserPosts = ({ user }) => {
   const ITEM_HEIGHT = 48;
   const options = ["เข้าร่วม", "แก้ไขชื่อ", "อื่นๆ"];
 
+  if (!user.users_id) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -40,8 +44,8 @@ const UserPosts = ({ user }) => {
         }
 
         const response = await axios.get(
-          `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
-          // `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/${user.users_id}`, // real
+          `http://localhost:8080/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
+          // `http://localhost:8080/api/postGame/user/${user.users_id}`, // real
           {
             headers: {
               Authorization: `Bearer ${token}`,
