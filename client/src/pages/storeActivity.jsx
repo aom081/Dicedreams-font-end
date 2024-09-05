@@ -143,7 +143,7 @@ const StoreAc = () => {
         store_id: user_id || "no_data_now",
       };
 
-      await axios.post(`http://localhost:8080/api/postActivity`, dataAc, {
+      await axios.post(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`, dataAc, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -208,7 +208,7 @@ const StoreAc = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/store/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
         formData,
         {
           headers: {

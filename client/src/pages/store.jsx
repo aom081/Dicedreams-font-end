@@ -79,7 +79,7 @@ const Store = () => {
       console.log("formData-->", formData);
 
       const response = axios.put(
-        `http://localhost:8080/api/store/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
         formData,
         {
           headers: {
@@ -124,7 +124,7 @@ const Store = () => {
         return;
       }
 
-      const url = `http://localhost:8080/api/store/${userId}`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${userId}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -172,7 +172,7 @@ const Store = () => {
         return;
       }
 
-      const url = `http://localhost:8080/api/postActivity/store/${userId}`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity/store/${userId}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -249,7 +249,7 @@ const Store = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `http://localhost:8080/api/store/${user_id}`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
         formData,
         {
           headers: {

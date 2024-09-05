@@ -39,7 +39,7 @@ const DetailsPage = () => {
 
         const loadEventDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'users_id': userId,
@@ -78,7 +78,7 @@ const DetailsPage = () => {
             await notifyUserBeforeEndPost(); // Notify the user before ending the post
 
             // Send a PUT request to update the status of the post
-            await axios.put(`http://localhost:8080/api/postGame/${id}`, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                 status_post: 'unActive', // Update the status to 'unActive'
             }, {
                 headers: {
