@@ -79,8 +79,8 @@ function RecipeReviewCard() {
             <Grid item key={event.post_games_id} xs={12} sm={10} md={8} id={`event-card-grid-${event.post_games_id}`}>
               <EventCard
                 userId={event.users_id}
-                profilePic={event.user_image} // Ensure this is returned by your API
-                username={event.username} // Ensure this is included in the API response
+                profilePic={event.user_image}
+                username={event.username}
                 postTime={event.creation_date}
                 image={event.games_image}
                 nameGames={event.name_games}
