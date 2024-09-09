@@ -28,12 +28,11 @@ export default function Post() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '40vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         padding: '20px',
-        backgroundColor: '#f0f0f0', // Light background to highlight the wooden sign
       }}
       id="post-container"
     >
@@ -41,10 +40,11 @@ export default function Post() {
         <FormLabel
           sx={{
             fontFamily: 'Mount Light',
-            fontSize: '24px',
+            fontSize: '36px',
             textAlign: 'center',
             marginBottom: '20px',
-            color: '#8B4513'
+            color: 'white',
+            backgroundColor: 'black'
           }}
           id="post-form-label"
         >
