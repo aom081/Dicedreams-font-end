@@ -15,7 +15,7 @@ function RecipeReviewCard() {
     const fetchEvents = async () => {
       try {
         // Fetch only events with 'active' status
-        const data = await getPostGames({ status_post: 'active' });
+        const data = await getPostGames('active');
         console.log("Fetched Events:", data); // Log fetched events
         setEvents(data);
       } catch (error) {
