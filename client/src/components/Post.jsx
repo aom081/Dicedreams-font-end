@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FormControl, FormLabel, InputBase, Button, Box, Snackbar, Alert } from '@mui/material';
+import { FormControl, FormLabel, InputBase, Button, Box, Snackbar, Alert, Tooltip } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 export default function Post() {
@@ -26,17 +26,34 @@ export default function Post() {
   };
 
   return (
-    <div className="py-20 flex flex-col justify-center items-center" id="post-container">
-      <FormControl className="section-container" id="post-form">
-        <FormLabel className="subtitle" sx={{ fontFamily: 'Mount Light', textAlign: 'center' }} id="post-form-label">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+        backgroundColor: '#f0f0f0', // Light background to highlight the wooden sign
+      }}
+      id="post-container"
+    >
+      <FormControl sx={{ width: '100%', maxWidth: '1100px' }} id="post-form">
+        <FormLabel
+          sx={{
+            fontFamily: 'Mount Light',
+            fontSize: '24px',
+            textAlign: 'center',
+            marginBottom: '20px',
+            color: '#8B4513'
+          }}
+          id="post-form-label"
+        >
           Let's create a party for fun
         </FormLabel>
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
             boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.5)',
             backgroundColor: '#DEB887',
             backgroundImage: 'url(/path-to-wood-texture.jpg)',
@@ -45,12 +62,8 @@ export default function Post() {
             borderRadius: '10px',
             border: '2px solid #8B4513',
             padding: '15px',
-            overflow: 'hidden',
             cursor: 'pointer',
-            width: { xs: '90%', sm: '80%', md: '70%', lg: '60%' },
-            maxWidth: '1100px',
-            margin: '20px 0',
-            textAlign: 'center'
+            width: '100%',
           }}
           onClick={handlePostClick}
           id="post-box"
@@ -60,19 +73,18 @@ export default function Post() {
             minRows={3}
             sx={{
               flex: 1,
-              marginBottom: '18px',
+              marginRight: '18px',
               fontSize: { xs: '14px', sm: '16px', md: '18px' },
               padding: '12px 16px',
               fontWeight,
               fontStyle: italic ? 'italic' : 'normal',
-              textAlign: 'center',
+              textAlign: 'left',
               pointerEvents: 'none',  // To prevent the input from being focused
               backgroundColor: 'rgba(255, 255, 255, 0.8)',
               borderRadius: '5px',
               fontFamily: 'Mount Light',
               color: '#8B4513',
-              border: '1px solid #8B4513',
-              width: '100%'
+              border: '1px solid #8B4513'
             }}
             id="post-input"
           />
@@ -80,7 +92,7 @@ export default function Post() {
             variant="contained"
             sx={{
               backgroundColor: '#A52A2A',
-              width: '50%',
+              height: '100px',
               pointerEvents: 'none', // To prevent the button from being focused
               color: "white",
               fontSize: { xs: '12px', sm: '14px', md: '16px' },
@@ -105,6 +117,6 @@ export default function Post() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </div>
+    </Box>
   );
 }
