@@ -33,8 +33,8 @@ function RecipeReviewCard() {
   };
 
   // Apply sorting based on selected filter
-  const filteredEvents = filter === 'new' ? [...events].reverse() :
-    filter === 'old' ? events :
+  const filteredEvents = filter === 'old' ? [...events].reverse() :
+    filter === 'new' ? events :
       events;
 
   return (
