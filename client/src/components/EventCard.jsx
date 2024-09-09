@@ -92,45 +92,6 @@ function EventCard(props) {
     };
 
     useEffect(() => {
-        const checkEventTime = async () => {
-            if (dateMeet && timeMeet) {
-                const eventTime = dayjs(`${dateMeet} ${timeMeet}`, 'YYYY-MM-DD HH:mm:ss');
-                const currentTime = dayjs();
-
-                if (currentTime.isAfter(eventTime)) {
-                    try {
-                        // Mark the post as inactive
-                        await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${eventId}/status`, {
-                            status_post: 'unActive',
-                        }, {
-                            headers: { Authorization: `Bearer ${accessToken}` },
-                        });
-
-                        // Show notification about the post being inactive
-                        setAlertMessage({
-                            open: true,
-                            message: 'Event time has passed. Post is now inactive.',
-                            severity: 'info',
-                        });
-
-                        // Delay 0.5 seconds before refreshing the website
-                        setTimeout(() => {
-                            setAlertMessage({ open: false, message: '', severity: 'info' });
-                            window.location.reload(); // Reload the website
-                        }, 500); // 0.5 seconds delay
-                    } catch (error) {
-                        console.error('Failed to update post status', error);
-                    }
-                }
-            }
-        };
-
-        const interval = setInterval(checkEventTime, 2000);
-        return () => clearInterval(interval);
-    }, [dateMeet, timeMeet, eventId, accessToken]);
-
-
-    useEffect(() => {
         const fetchUserDetails = async (id) => {
             try {
                 const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`, {
