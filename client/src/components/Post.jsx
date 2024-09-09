@@ -31,50 +31,64 @@ export default function Post() {
         <FormLabel className="subtitle" sx={{ fontFamily: 'Mount Light' }} id="post-form-label">
           Let's create a party for fun
         </FormLabel>
-          <Box
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.5)',
+            backgroundColor: '#DEB887',
+            backgroundImage: 'url(/path-to-wood-texture.jpg)',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            borderRadius: '10px',
+            border: '2px solid #8B4513',
+            padding: '15px',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            width: { xs: '90%', sm: '80%', md: '70%', lg: '60%' },
+            maxWidth: '1100px',
+            margin: '20px 0'
+          }}
+          onClick={handlePostClick}
+          id="post-box"
+        >
+          <InputBase
+            multiline
+            minRows={3}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
-              backgroundColor: 'burlywood',
-              backgroundImage: 'url(/path-to-wood-texture.jpg)',
-              borderRadius: '10px',
-              border: '1px solid #8B4513',
-              padding: '10px',
-              overflow: 'hidden',
-              cursor: 'pointer'
+              flex: 1,
+              marginRight: '18px',
+              fontSize: { xs: '14px', sm: '16px', md: '18px' },
+              padding: '12px 16px',
+              fontWeight,
+              fontStyle: italic ? 'italic' : 'normal',
+              textAlign: 'left',
+              pointerEvents: 'none',  // To prevent the input from being focused
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: '5px',
+              fontFamily: 'Mount Light',
+              color: '#8B4513',
+              border: '1px solid #8B4513'
             }}
-            onClick={handlePostClick}
-            id="post-box"
+            id="post-input"
+          />
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#A52A2A',
+              height: '100px',
+              pointerEvents: 'none', // To prevent the button from being focused
+              color: "white",
+              fontSize: { xs: '12px', sm: '14px', md: '16px' },
+              padding: '10px 20px',
+              borderRadius: '5px',
+              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.5)'
+            }}
+            id="post-button"
           >
-            <InputBase
-              multiline
-              minRows={3}
-              sx={{
-                flex: 1,
-                marginRight: '18px',
-                minWidth: { xs: '300px', sm: '500px', md: '700px', lg: '1050px' },
-                fontSize: '16px',
-                padding: '12px 16px',
-                fontWeight,
-                fontStyle: italic ? 'italic' : 'normal',
-                textAlign: 'left',
-                pointerEvents: 'none',  // To prevent the input from being focused
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                borderRadius: '5px',
-                fontFamily: 'Mount Light'
-              }}
-              id="post-input"
-            />
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: 'crimson', height: '100px', pointerEvents: 'none', color: "white" }}  // To prevent the button from being focused
-              id="post-button"
-            >
-              Post
-            </Button>
-          </Box>
-       
+            Post
+          </Button>
+        </Box>
       </FormControl>
       <Snackbar
         open={snackbar.open}
@@ -90,5 +104,3 @@ export default function Post() {
     </div>
   );
 }
-
-
