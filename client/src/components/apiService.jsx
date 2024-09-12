@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/postGame";
+const API_URL = "https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame";
 
 export const getPostGames = async () => {
   try {
