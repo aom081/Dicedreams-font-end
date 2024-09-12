@@ -44,7 +44,7 @@ export default function Post() {
             textAlign: 'center',
             marginBottom: '20px',
             color: 'white',
-            backgroundColor: 'black'
+            backgroundColor:'black'
           }}
           id="post-form-label"
         >

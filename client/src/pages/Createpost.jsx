@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -14,6 +16,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
@@ -29,7 +32,30 @@ const CreatePost = () => {
   const [imageFile, setImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: '' });
+  const [gameOption, setGameOption] = useState('');
+  const [customGameName, setCustomGameName] = useState('');
   const fileInputRef = useRef(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const predefinedGames = [
+    '7 Wonders', 'Agricola', 'Anachrony', 'Arkham Horror', 'Azul',
+    'Betrayal at House on the Hill', 'Blood Rage', 'Brass: Birmingham',
+    'Calico', 'Carcassonne', 'Catan', 'Chess', 'Clank!',
+    'Codenames', 'Concordia', 'Cosmic Encounter', 'Dead of Winter',
+    'Dixit', 'Dominion', 'Dungeons and Dragons', 'Everdell',
+    'Gloomhaven', 'Jaipur', 'King of Tokyo', 'Lords of Waterdeep',
+    'Lost Ruins of Arnak', 'Mansions of Madness', 'Monopoly',
+    'Pandemic', 'Pax Pamir', 'Patchwork', 'Power Grid',
+    'Root', 'Santorini', 'Scythe', 'Sheriff of Nottingham',
+    'Small World', 'Spirit Island', 'Splendor', 'Star Realms',
+    'Terraforming Mars', 'The Castles of Burgundy', 'The Crew',
+    'The Quacks of Quedlinburg', 'The Resistance', 'Ticket to Ride',
+    'Twilight Struggle', 'Viticulture', 'Warhammer 40K',
+    'Warhammer Killteam', 'Wingspan', 'Werewolf'
+  ];
+
 
   const handleNumberChange = (event) => {
     let value = event.target.value;
@@ -44,6 +70,32 @@ const CreatePost = () => {
     setFormValues((prevValues) => ({
       ...prevValues,
       [name]: value,
+    }));
+  };
+
+  const handleGameOptionChange = (event) => {
+    const value = event.target.value;
+    setGameOption(value);
+
+    if (value !== 'Other') {
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        name_games: value,
+      }));
+    } else {
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        name_games: customGameName,
+      }));
+    }
+  };
+
+  const handleCustomGameNameChange = (event) => {
+    const value = event.target.value;
+    setCustomGameName(value);
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      name_games: value,
     }));
   };
 
@@ -66,7 +118,7 @@ const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formValues.name_games) {
+    if (!formValues.name_games && gameOption !== 'Other') {
       setAlertMessage({ open: true, message: 'ไม่กรอก Game name', severity: 'error' });
       return;
     }
@@ -92,7 +144,7 @@ const CreatePost = () => {
     const hoursDifference = selectedDateTime.diff(currentDateTime, 'hour');
 
     if (hoursDifference < 12) {
-      setAlertMessage({ open: true, message: 'Meeting time must be at least 12 hours in the future', severity: 'error' });
+      setAlertMessage({ open: true, message: 'เวลานัดเล่นอย่างน้อยต้อง 12 ชั่วโมงก่อนเวลาปัจจุบัน', severity: 'error' });
       return;
     }
 
@@ -107,12 +159,12 @@ const CreatePost = () => {
       games_image: formValues.games_image,
       status_post: 'active',
       users_id: userId,
-      username, // Directly use username from context
-      profilePic, // Directly use profilePic from context
+      username,
+      profilePic,
     };
 
     try {
-      const response = await fetch('https://dicedreams-backend-deploy-to-render.onrender.com/api/PostGame', {
+      const response = await fetch('http://localhost:8080/api/PostGame', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,38 +200,81 @@ const CreatePost = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120vh', position: 'relative', p: 4 }} id="create-post-container">
-      <Card sx={{ maxWidth: 600, width: '100%', boxShadow: 3, p: 2, mt: 4, mb: 4 }} id="create-post-card">
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '90vh',
+        p: isMobile ? 2 : 4,
+      }}
+      id="create-post-container"
+    >
+      <Card
+        sx={{
+          maxWidth: isMobile ? '100%' : 600,
+          width: '100%',
+          boxShadow: 3,
+          p: 2,
+          mt: 4,
+          mb: 4,
+        }}
+        id="create-post-card"
+      >
         <CardContent>
-          <Typography variant="h4" gutterBottom id="create-post-title">Create a board game post</Typography>
+          <Typography variant="h4" gutterBottom id="create-post-title">
+            Create a board game post
+          </Typography>
           <form onSubmit={handleSubmit} noValidate>
-            <TextField
+            <Select
               fullWidth
-              id="name_games"
-              label="Board game name"
-              name="name_games"
-              value={formValues.name_games}
-              onChange={handleInputChange}
-              placeholder="mtg werewolf monopoly game and others"
-              multiline
+              value={gameOption}
+              onChange={handleGameOptionChange}
+              displayEmpty
               sx={{ mb: 2 }}
-              required
-              inputProps={{ 'data-testid': 'name-games-input' }}
-            />
+              inputProps={{ 'data-testid': 'game-select', id: 'game-select' }}
+            >
+
+              <MenuItem value="" disabled>
+                Select a board game
+              </MenuItem>
+              {predefinedGames.map((game) => (
+                <MenuItem key={game} value={game} id={`game-option-${game.replace(/\s+/g, '-').toLowerCase()}`}>
+                  {game}
+                </MenuItem>
+              ))}
+              <MenuItem value="Other">Other</MenuItem>
+            </Select>
+
+            {gameOption === 'Other' && (
+              <TextField
+                fullWidth
+                id="custom-game-name"
+                label="Enter custom game name"
+                name="custom_game_name"
+                value={customGameName}
+                onChange={handleCustomGameNameChange}
+                sx={{ mb: 2 }}
+                inputProps={{ 'data-testid': 'custom-game-input' }}
+                required
+              />
+            )}
+
             <TextField
               fullWidth
-              id="detail_post"
-              label="Post details"
+              label="Post Details"
+              variant="outlined"
               name="detail_post"
+              multiline
+              rows={4}
               value={formValues.detail_post}
               onChange={handleInputChange}
-              placeholder="Details"
-              multiline
               sx={{ mb: 2 }}
-              inputProps={{ 'data-testid': 'detail-post-input' }}
+              inputProps={{ 'data-testid': 'detail-post-input', id: 'detail-post-input' }}
             />
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Box sx={{ mb: 2 }} id="date_meet">
+              <Stack direction="row" spacing={2} sx={{ mb: 2 }} id="date-time-picker">
                 <DatePicker
                   label="Select an appointment date"
                   views={['year', 'month', 'day']}
@@ -189,8 +284,6 @@ const CreatePost = () => {
                   required
                   inputProps={{ 'data-testid': 'date-picker' }}
                 />
-              </Box>
-              <Box sx={{ mb: 2 }} id="time_meet">
                 <TimePicker
                   label="Select a time"
                   value={timeValue}
@@ -199,8 +292,9 @@ const CreatePost = () => {
                   required
                   inputProps={{ 'data-testid': 'time-picker' }}
                 />
-              </Box>
+              </Stack>
             </LocalizationProvider>
+
             <TextField
               fullWidth
               id="num_people"
@@ -213,6 +307,7 @@ const CreatePost = () => {
               required
               inputProps={{ 'data-testid': 'num-people-input' }}
             />
+
             <Button
               variant="contained"
               component="span"
@@ -233,7 +328,8 @@ const CreatePost = () => {
               id="file-input"
             />
             {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
-            <Stack direction="row" spacing={38} sx={{ mt: 2 }}>
+
+            <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -269,6 +365,7 @@ const CreatePost = () => {
           </form>
         </CardContent>
       </Card>
+
       <Snackbar
         open={alertMessage.open}
         autoHideDuration={6000}

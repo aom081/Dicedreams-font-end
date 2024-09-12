@@ -1,41 +1,42 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import {
   Box,
   Typography,
-  Avatar,
   TextField,
   Grid,
-  IconButton,
-  Menu,
-  MenuItem,
   Button,
   LinearProgress,
-  CircularProgress,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import UploadIcon from "@mui/icons-material/UploadFile";
-import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
+
 
 const StoreAc = () => {
   const [acName, setAcName] = useState("");
   const [acDetail, setAcDetail] = useState("");
   const [eventDate, setEventDate] = useState(dayjs());
   const [eventTime, setEventTime] = useState(dayjs());
-
   const [dragging, setDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadError, setUploadError] = useState(null);
-  const [showUploadBar, setShowUploadBar] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+
+  const navigate = useNavigate();
+
+
+  const handleDateChange = (newValue) => setEventDate(newValue);
+  const handleTimeChange = (newValue) => setEventTime(newValue);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -44,19 +45,31 @@ const StoreAc = () => {
     }
   };
 
-  const handleDateChange = (newValue) => {
-    setEventDate(newValue);
+  const handleDragLeave = () => {
+    setDragging(false);
   };
 
-  const handleTimeChange = (newValue) => {
-    setEventTime(newValue);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
-  const handleCloseUploadBar = () => {
-    setShowUploadBar(false);
-    setUploadProgress(0);
-    setUploadError(null);
-    setUploading(false);
+  const chooseFile = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const convertImageToBase64 = (imageFile) => {
@@ -68,147 +81,58 @@ const StoreAc = () => {
     });
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragging(false);
-  };
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const files = e.dataTransfer.files;
-
-    if (files.length > 0) {
-      const file = files[0];
-      handleFileUpload(file);
-    }
-  };
-
-  const chooseFile = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleFileUpload = async (file) => {
-    setImagePreview(URL.createObjectURL(file));
-    setUploading(true);
-    setUploadProgress(0);
-    setUploadError(null);
-    setShowUploadBar(true);
-
-    if (file.size > 3000000) {
-      alert("ขนาดไฟล์เกิน 3 MB");
-      setUploading(false);
-      return;
-    }
-
-    if (
-      ![
-        "image/jpeg",
-        "image/svg+xml",
-        "image/png",
-        "image/jpg",
-        "image/gif",
-      ].includes(file.type)
-    ) {
-      alert("กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ");
-      setUploading(false);
-      return;
-    }
-
-    try {
-      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        alert("No token found. Please login.");
-        setUploading(false);
-        return;
-      }
-
-      const base64Image = await convertImageToBase64(file);
-
-      let dataAc = {
-        name_activity: acName || "no_data_now",
-        status_post: "active",
-        detail_post: acDetail || "no_data_now",
-        date_activity: eventDate
-          ? eventDate.format("YYYY-MM-DD")
-          : "no_data_now",
-        time_activity: eventTime ? eventTime.format("HH:mm:ss") : "no_data_now",
-        post_activity_image: base64Image,
-        store_id: user_id || "no_data_now",
-      };
-
-      await axios.post(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`, dataAc, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        onUploadProgress: (progressEvent) => {
-          const { loaded, total } = progressEvent;
-          let percentCompleted = Math.floor((loaded * 100) / total);
-          setUploadProgress(percentCompleted);
-        },
-      });
-
-      setUploading(false);
-      setUploadProgress(100);
-      setTimeout(() => {
-        setUploadProgress(0);
-        setImagePreview(null);
-      }, 2000);
-    } catch (error) {
-      setUploading(false);
-      setUploadProgress(0);
-      setUploadError("File upload failed");
-      console.error("Error uploading file", error);
-    }
-  };
-
   const handleSave = async () => {
+    if (!acName || !acDetail || !eventDate || !eventTime) {
+      alert("Please fill all fields and select a file before saving.");
+      return;
+    }
+
+    const now = new Date();
+
+    const formattedDate =
+      ("0" + (now.getMonth() + 1)).slice(-2) +
+      "/" +
+      ("0" + now.getDate()).slice(-2) +
+      "/" +
+      now.getFullYear() +
+      " " +
+      ("0" + now.getHours()).slice(-2) +
+      ":" +
+      ("0" + now.getMinutes()).slice(-2) +
+      ":" +
+      ("0" + now.getSeconds()).slice(-2);
+
+    let base64Image;
+    if (!selectedFile) {
+      base64Image = "";
+    } else {
+      base64Image = await convertImageToBase64(selectedFile);
+    }
+
     try {
-      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
 
       if (!token) {
         alert("No token found. Please login.");
-        return;
-      }
-
-      if (!acName) {
-        alert("กรุณาใส่ ชื่อเรื่อง");
-        return;
-      }
-      if (!acDetail) {
-        alert("กรุณาใส่ รายละเอียด");
-        return;
-      }
-      if (!eventDate) {
-        alert("กรุณาเลือกวันที่");
-        return;
-      }
-      if (!eventTime) {
-        alert("กรุณาเลือกเวลา");
         return;
       }
 
       const formData = {
+        creation_date: formattedDate,
         name_activity: acName,
         status_post: "active",
         detail_post: acDetail,
         date_activity: eventDate.format("YYYY-MM-DD"),
         time_activity: eventTime.format("HH:mm:ss"),
+        post_activity_image: base64Image,
         store_id: user_id,
       };
+      
+      console.log("form--->",formData)
 
-      console.log("formData-->", formData);
-
-      const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
+      const response = await axios.post(
+        `http://localhost:8080/api/postActivity`,
         formData,
         {
           headers: {
@@ -219,13 +143,12 @@ const StoreAc = () => {
       );
 
       console.log("File uploaded and user updated successfully", response.data);
-      console.log("Uploaded Image URL:-->", uploadedImageUrl);
-
-      setTimeout(() => {
-        getStore();
-      }, 2000);
+      alert("File uploaded and activity saved successfully.");
+      navigate("/store");
     } catch (error) {
-      console.error("Error updating store", error);
+      alert("Error Post Activity  " + error.response.data.error.message);
+      console.error("Error Post Activity", error);      
+      navigate("/store");
     }
   };
 
@@ -233,7 +156,6 @@ const StoreAc = () => {
     <Box sx={{ marginTop: 8 }}>
       <Box
         sx={{
-          marginTop: 8,
           backgroundColor: "red",
           borderRadius: 2,
           width: "60%",
@@ -256,7 +178,6 @@ const StoreAc = () => {
           padding: 2,
         }}
       >
-        {/* acName */}
         <Box sx={{ marginBottom: 2 }}>
           <TextField
             fullWidth
@@ -421,67 +342,27 @@ const StoreAc = () => {
           ) : (
             <>
               <UploadIcon sx={{ color: "white", fontSize: 40 }} />
-              <Typography sx={{ color: "white", marginTop: 1 }}>
-                Drag and drop an image here
-              </Typography>
-              <Typography sx={{ color: "white", marginTop: 1 }}>
-                Or click to select an image
+              <Typography sx={{ color: "white" }}>
+                Drag and drop or click to select a file
               </Typography>
             </>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            style={{ display: "none" }}
-            onChange={(e) => handleFileUpload(e.target.files[0])}
-          />
         </Box>
 
-        {showUploadBar && (
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <LinearProgress
-                variant="determinate"
-                value={uploadProgress}
-                sx={{ flex: 1 }}
-              />
-              <IconButton onClick={handleCloseUploadBar}>
-                <CloseIcon sx={{ color: "white" }} />
-              </IconButton>
-            </Box>
-          </Box>
-        )}
-        {uploading && (
-          <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-            <CircularProgress sx={{ marginRight: 2 }} />
-            <Typography sx={{ color: "white" }}>Uploading...</Typography>
-          </Box>
-        )}
-        {uploadError && (
-          <Box sx={{ marginBottom: 2 }}>
-            <Typography sx={{ color: "red" }}>{uploadError}</Typography>
-          </Box>
-        )}
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
 
         <Button
+          variant="contained"
+          color="primary"
           onClick={handleSave}
-          sx={{
-            color: "#fff",
-            width: "100%",
-            backgroundColor: "#0B6BCB",
-            borderColor: "#0B6BCB",
-            "&:hover": {
-              backgroundColor: "#0B6BCB",
-            },
-          }}
+          fullWidth
         >
-          CONFIRM
+          Save
         </Button>
       </Box>
     </Box>

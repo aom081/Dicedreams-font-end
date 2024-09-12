@@ -11,11 +11,13 @@ import {
   Tab,
   CircularProgress,
   Button,
+  colors,
 } from "@mui/material";
 import UploadIcon from "@mui/icons-material/Upload";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import Activity from "../components/storeAc";
+import { blue } from "@mui/material/colors";
 
 const Store = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -53,8 +55,8 @@ const Store = () => {
 
   const handleSave = () => {
     try {
-      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      // const user_id = localStorage.getItem("users_id");
+      // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("No token found");
@@ -79,7 +81,7 @@ const Store = () => {
       console.log("formData-->", formData);
 
       const response = axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
+        `http://localhost:8080/api/store/${user_id}`,
         formData,
         {
           headers: {
@@ -101,6 +103,7 @@ const Store = () => {
         getStore();
       }, 2000);
     } catch (error) {
+      alert("Error uploading file  " + error.response.data.error.message);
       console.error("Error uploading file", error);
     }
   };
@@ -112,8 +115,10 @@ const Store = () => {
   const getStore = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      // const userId = localStorage.getItem("users_id");
-      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const userId = localStorage.getItem("users_id");
+      // const userId = "3a644c7c-1321-4ff3-bcba-e600fa5366e4"; // test
+
+      console.log("getStore userId-->", userId);
 
       if (!token) {
         throw new Error("No token found");
@@ -124,7 +129,7 @@ const Store = () => {
         return;
       }
 
-      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${userId}`;
+      const url = `http://localhost:8080/api/store/${userId}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -153,6 +158,7 @@ const Store = () => {
 
       console.log("store data fetched successfully", response.data);
     } catch (error) {
+      alert("Error fetching store data  " + error.response.data.error.message);
       console.error("Error fetching store data", error);
     }
   };
@@ -160,8 +166,9 @@ const Store = () => {
   const getStoreAc = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      // const userId = localStorage.getItem("users_id");
-      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const userId = localStorage.getItem("users_id");
+      // const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      console.log("getStoreAc userId-->", userId);
 
       if (!token) {
         throw new Error("No token found");
@@ -172,7 +179,7 @@ const Store = () => {
         return;
       }
 
-      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity/store/${userId}`;
+      const url = `http://localhost:8080/api/postActivity/store/${userId}`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -181,6 +188,7 @@ const Store = () => {
       setstoreAc(response.data);
       console.log("StoreAc data fetched successfully", response.data);
     } catch (error) {
+      alert("Error fetching StoreAc data  " + error.response.data.error.message);
       console.error("Error fetching StoreAc data", error);
     }
   };
@@ -229,8 +237,8 @@ const Store = () => {
     }
 
     try {
-      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      // const user_id = localStorage.getItem("users_id");
+      // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("No token found");
@@ -249,7 +257,7 @@ const Store = () => {
       console.log("formData-->", formData);
 
       const response = await axios.put(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api/store/${user_id}`,
+        `http://localhost:8080/api/store/${user_id}`,
         formData,
         {
           headers: {
@@ -290,6 +298,8 @@ const Store = () => {
       setUploadProgress(0);
       setUploadError("File upload failed");
       console.error("Error uploading file", error);
+      alert("Error uploading file  " + error.response.data.error.message);
+
     }
   };
 
@@ -360,6 +370,12 @@ const Store = () => {
                 <Box sx={{ marginTop: 4 }}>
                   {activeTab === 0 && (
                     <Box>
+                      <Box>
+                        <Button
+                        sx={{width: "100%", margin: 4 , backgroundColor:"white" , color: "red"}}
+                          onClick={() => navigate("/store/createAc")} // Use navigate function on click
+                        >+ add New Activity</Button>
+                      </Box>
                       <Activity
                         data={storeAc}
                         storeImg={store.store_image}
