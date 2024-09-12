@@ -44,8 +44,8 @@ const UserPosts = ({ user }) => {
         }
 
         const response = await axios.get(
-          `https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
-          // `https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/user/${user.users_id}`, // real
+          `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
+          // `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/${user.users_id}`, // real
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -164,7 +164,7 @@ const CreatePost = () => {
     };
 
     try {
-      const response = await fetch('https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/PostGame', {
+      const response = await fetch('https://dicedreams-backend-deploy-to-render.onrender.com/api/PostGame', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

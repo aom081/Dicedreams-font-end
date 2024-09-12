@@ -132,7 +132,7 @@ const StoreAc = () => {
       console.log("form--->",formData)
 
       const response = await axios.post(
-        `https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postActivity`,
+        `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`,
         formData,
         {
           headers: {

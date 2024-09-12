@@ -28,7 +28,7 @@ const DetailsPage = () => {
             }
 
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 setEvent(response.data);
@@ -43,7 +43,7 @@ const DetailsPage = () => {
 
     const handleEndPost = async () => {
         try {
-            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/${id}`, { status_post: 'unActive' }, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'ลบโพสต์นัดเล่น สำเร็จ', severity: 'success' });

@@ -22,7 +22,7 @@ const EditParticipantsPage = () => {
             }
 
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/${id}/participants`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}/participants`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 const participants = response.data.participants || [];
@@ -38,7 +38,7 @@ const EditParticipantsPage = () => {
 
     const handleApprove = async (participantId) => {
         try {
-            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/${id}/participants/${participantId}/approve`, {}, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}/participants/${participantId}/approve`, {}, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'Participant approved!', severity: 'success' });
@@ -52,7 +52,7 @@ const EditParticipantsPage = () => {
 
     const handleRemove = async (participantId) => {
         try {
-            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api-docs/postGame/${id}/participants/${participantId}/remove`, {}, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}/participants/${participantId}/remove`, {}, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'Participant removed!', severity: 'success' });
