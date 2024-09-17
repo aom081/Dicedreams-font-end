@@ -47,7 +47,7 @@ function EventCard(props) {
             setOpenConfirmDialog(false);
 
             // Send a PUT request to update the status of the post
-            await axios.put(`http://localhost:8080/api/postGame/${eventId}`, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${eventId}`, {
                 status_post: 'unActive',
             }, {
                 headers: {
@@ -94,7 +94,7 @@ function EventCard(props) {
     useEffect(() => {
         const fetchUserDetails = async (id) => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/users/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },

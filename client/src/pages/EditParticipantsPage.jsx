@@ -23,7 +23,7 @@ const EditParticipantsPage = () => {
 
             try {
                 console.log('Fetching participants for post ID:', id);
-                const response = await axios.get(`http://localhost:8080/api/participate/post/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/post/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 console.log('API response:', response.data);
@@ -46,7 +46,7 @@ const EditParticipantsPage = () => {
     const handleApprove = async (participantId) => {
         try {
             console.log('Approving participant with ID:', participantId);
-            await axios.put(`http://localhost:8080/participate/${id}`, {}, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/participate/${id}`, {}, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
@@ -67,7 +67,7 @@ const EditParticipantsPage = () => {
     const handleRemove = async (participantId) => {
         try {
             console.log('Removing participant with ID:', participantId);
-            await axios.delete(`http://localhost:8080/participate/${id}`, {
+            await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/participate/${id}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
@@ -109,7 +109,7 @@ const EditParticipantsPage = () => {
     const handleRefuse = async (participantId) => {
         try {
             console.log('Refusing participant with ID:', participantId);
-            await axios.delete(`http://localhost:8080/participate/${id}/refuse/${participantId}`, {
+            await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/participate/${id}/refuse/${participantId}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
