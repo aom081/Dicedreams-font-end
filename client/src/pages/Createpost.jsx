@@ -11,12 +11,14 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
 import { useMediaQuery, useTheme } from '@mui/material';
+import { predefinedGames } from '../constants/gameList'
 
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
@@ -38,24 +40,6 @@ const CreatePost = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const predefinedGames = [
-    '7 Wonders', 'Agricola', 'Anachrony', 'Arkham Horror', 'Azul',
-    'Betrayal at House on the Hill', 'Blood Rage', 'Brass: Birmingham',
-    'Calico', 'Carcassonne', 'Catan', 'Chess', 'Clank!',
-    'Codenames', 'Concordia', 'Cosmic Encounter', 'Dead of Winter',
-    'Dixit', 'Dominion', 'Dungeons and Dragons', 'Everdell',
-    'Gloomhaven', 'Jaipur', 'King of Tokyo', 'Lords of Waterdeep',
-    'Lost Ruins of Arnak', 'Mansions of Madness', 'Monopoly',
-    'Pandemic', 'Pax Pamir', 'Patchwork', 'Power Grid',
-    'Root', 'Santorini', 'Scythe', 'Sheriff of Nottingham',
-    'Small World', 'Spirit Island', 'Splendor', 'Star Realms',
-    'Terraforming Mars', 'The Castles of Burgundy', 'The Crew',
-    'The Quacks of Quedlinburg', 'The Resistance', 'Ticket to Ride',
-    'Twilight Struggle', 'Viticulture', 'Warhammer 40K',
-    'Warhammer Killteam', 'Wingspan', 'Werewolf'
-  ];
-
 
   const handleNumberChange = (event) => {
     let value = event.target.value;
@@ -155,7 +139,7 @@ const CreatePost = () => {
       detail_post: formValues.detail_post,
       num_people: numberOfPlayers,
       date_meet: formattedDate,
-      time_meet: timeValue.format('HH:mm:ss'),
+      time_meet: timeValue.format('HH:mm A'),
       games_image: formValues.games_image,
       status_post: 'active',
       users_id: userId,
@@ -164,7 +148,7 @@ const CreatePost = () => {
     };
 
     try {
-      const response = await fetch('https://dicedreams-backend-deploy-to-render.onrender.com/api/PostGame', {
+      const response = await fetch('http://localhost:8080/api/PostGame', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -291,6 +275,11 @@ const CreatePost = () => {
                   renderInput={(params) => <TextField fullWidth {...params} />}
                   required
                   inputProps={{ 'data-testid': 'time-picker' }}
+                  viewRenderers={{
+                    hours: renderTimeViewClock,
+                    minutes: renderTimeViewClock,
+                    seconds: renderTimeViewClock,
+                  }}
                 />
               </Stack>
             </LocalizationProvider>
