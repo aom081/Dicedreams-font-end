@@ -145,18 +145,23 @@ const Navbar = () => {
             </Link>
             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, marginLeft: 2 }}>
                 {isMobile ? (
-                    <IconButton color="inherit" onClick={() => navigate(`/index?search=${encodeURIComponent(searchQuery)}`)} id="search-icon">
+                    <IconButton
+                        color="inherit"
+                        id="search-icon"
+                    >
                         <SearchIcon />
                     </IconButton>
                 ) : (
-                    <Input
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={handleSearchSubmit}
-                        sx={{ marginLeft: 2 }}
-                        id="search-input"
-                    />
+                    <>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            sx={{ marginLeft: 2 }}
+                            id="search-button"
+                        >
+                            Search...
+                        </Button>
+                    </>
                 )}
             </Box>
             {accessToken ? (

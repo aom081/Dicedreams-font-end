@@ -316,7 +316,10 @@ const CreatePost = () => {
               onChange={handleImageChange}
               id="file-input"
             />
-            {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
+            {previewImage && <img 
+            src={previewImage} 
+            alt="Preview" 
+            style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
 
             <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button

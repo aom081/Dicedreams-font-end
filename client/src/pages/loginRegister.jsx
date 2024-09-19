@@ -56,9 +56,11 @@ function LoginPage() {
     if (queryParams.get("register") === "true") {
       setIsRegister(true);
     }
+    console.log("Location params:", queryParams);
   }, [location]);
 
   const handleLogin = async () => {
+    console.log("Attempting login with data:", formData);
     if (!formData.identifier) {
       setAlert({ open: true, message: "กรอก E-mail หรือ Username ไม่ถูกต้อง", severity: "error" });
       return;
@@ -74,6 +76,7 @@ function LoginPage() {
         identifier: formData.identifier,
         password: formData.loginPassword,
       });
+      console.log("Login response:", response);
       const { access_token } = response.data;
       login(access_token);
       setAlert({ open: true, message: "เข้าสู่ระบบสำเร็จ!", severity: "success" });
@@ -81,8 +84,8 @@ function LoginPage() {
       setTimeout(() => {
         navigate("/");
       }, 1500); // Adjust the delay as needed
-
     } catch (error) {
+      console.error("Login error:", error);
       const errorMessage =
         error.response?.data?.message ||
         (error.request ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง" : "ข้อผิดพลาด: " + error.message);
@@ -93,6 +96,7 @@ function LoginPage() {
   };
 
   const handleRegister = async () => {
+    console.log("Attempting registration with data:", formData);
     const requiredFields = [
       { name: "first_name", label: "First Name" },
       { name: "last_name", label: "Last Name" },
@@ -106,6 +110,7 @@ function LoginPage() {
 
     for (const field of requiredFields) {
       if (!formData[field.name]) {
+        console.log(`${field.label} is missing`);
         setAlert({ open: true, message: `ไม่กรอก ${field.label}`, severity: "error" });
         return;
       }
@@ -138,6 +143,7 @@ function LoginPage() {
       const base64Image = formData.user_image
         ? await convertImageToBase64(formData.user_image)
         : null;
+      console.log("Base64 image:", base64Image);
 
       const dataToSend = {
         first_name: formData.first_name,
@@ -150,12 +156,14 @@ function LoginPage() {
         gender: formData.gender,
         user_image: base64Image,
       };
+      console.log("Sending registration data:", dataToSend);
 
       const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend, {
         headers: {
           "Content-Type": "application/json",
         },
       });
+      console.log("Registration response:", response);
 
       setAlert({ open: true, message: "ลงทะเบียนสำเร็จ!", severity: "success" });
 
@@ -177,6 +185,7 @@ function LoginPage() {
 
       setIsRegister(false);
     } catch (error) {
+      console.error("Registration error:", error);
       const errorMessage =
         error.response?.data?.message ||
         (error.request ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง" : "ข้อผิดพลาด: " + error.message);
@@ -187,19 +196,23 @@ function LoginPage() {
   };
 
   const handleCancel = () => {
+    console.log("Cancel button clicked");
     navigate("/");
   };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+    console.log(`Input changed: ${name} = ${value}`);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
+    console.log("File selected:", file);
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        console.log("File preview loaded");
         setFormData((prev) => ({ ...prev, user_image: file, user_image_preview: reader.result }));
       };
       reader.readAsDataURL(file);
@@ -208,9 +221,11 @@ function LoginPage() {
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
+    console.log("Password visibility toggled:", !showPassword);
   };
 
   const handleCloseAlert = () => {
+    console.log("Closing alert");
     setAlert({ open: false, message: "", severity: "success" });
   };
 
@@ -373,8 +388,8 @@ function LoginPage() {
             </RadioGroup>
             <Box
               display="flex"
-              alignItems="center"
-              justifyContent="space-between"
+              flexDirection="column" // Stack button and image vertically
+              alignItems="flex-start"
               sx={{ marginTop: "16px" }}
               id="image-upload-section"
             >
@@ -383,6 +398,7 @@ function LoginPage() {
                 color="primary"
                 startIcon={<CloudUploadIcon />}
                 onClick={() => fileInputRef.current.click()}
+                sx={{ mb: 2 }} // Margin bottom for spacing between button and image
                 id="upload-image-button"
               >
                 Upload Image
@@ -396,10 +412,15 @@ function LoginPage() {
                 id="image-input"
               />
               {formData.user_image_preview && (
-                <img
+                <Box
+                  component="img"
                   src={formData.user_image_preview}
                   alt="Preview"
-                  style={{ width: "100px", height: "100px", marginLeft: "16px" }}
+                  sx={{
+                    maxWidth: '100%', // Set max width to 100%
+                    marginBottom: '10px', // Add margin below the image
+                    borderRadius: 2, // Optional: round the corners of the image
+                  }}
                   id="image-preview"
                 />
               )}
