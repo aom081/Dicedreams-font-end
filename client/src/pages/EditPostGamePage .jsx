@@ -41,7 +41,7 @@ const EditPostGamePage = () => {
             }
 
             try {
-                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'users_id': userId,
@@ -142,7 +142,7 @@ const EditPostGamePage = () => {
 
         try {
             // Send updated event data to the server
-            await axios.put(`http://localhost:8080/api/postGame/${id}`, formattedEvent, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, formattedEvent, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'users_id': userId,
