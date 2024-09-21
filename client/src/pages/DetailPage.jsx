@@ -31,7 +31,7 @@ const DetailsPage = () => {
     useEffect(() => {
         const loadEventDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 const eventData = response.data;
@@ -53,7 +53,7 @@ const DetailsPage = () => {
 
     const handleEndPost = async () => {
         try {
-            await axios.put(`http://localhost:8080/api/postGame/${id}`, { status_post: 'unActive' }, {
+            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'ลบโพสต์นัดเล่น สำเร็จ', severity: 'success' });
@@ -81,7 +81,7 @@ const DetailsPage = () => {
         };
 
         try {
-            await axios.post(`http://localhost:8080/api/participate`, participantData, {
+            await axios.post(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate`, participantData, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'Successfully joined the event!', severity: 'success' });
