@@ -1,18 +1,19 @@
+// DetailsPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, Box, Avatar, TextField,
-    Snackbar, Alert, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, Grid
-} from '@mui/material';
+    Container, Paper, Typography, Button, Box, Snackbar, Alert, Dialog,
+    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, TextField
+} from '@mui/material'; // Added TextField
 import { AuthContext } from '../Auth/AuthContext';
 import dayjs from 'dayjs';
+import Chat from '../components/Chat'; // Importing Chat component
 
 const DetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { userId, accessToken, role } = useContext(AuthContext);
+    const { userId, accessToken, role, username } = useContext(AuthContext);
 
     const [event, setEvent] = useState({
         name_games: '',
@@ -30,7 +31,7 @@ const DetailsPage = () => {
     useEffect(() => {
         const loadEventDetails = async () => {
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
+                const response = await axios.get(`http://localhost:8080/api/postGame/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 const eventData = response.data;
@@ -52,7 +53,7 @@ const DetailsPage = () => {
 
     const handleEndPost = async () => {
         try {
-            await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
+            await axios.put(`http://localhost:8080/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'ลบโพสต์นัดเล่น สำเร็จ', severity: 'success' });
@@ -61,20 +62,6 @@ const DetailsPage = () => {
             setAlertMessage({ open: true, message: 'Failed to update post status.', severity: 'error' });
         }
     };
-
-    useEffect(() => {
-        if (!event.name_games) return;
-
-        const checkTimeToHidePost = () => {
-            const currentTime = dayjs();
-            const appointmentTime = dayjs(event.date_meet).set('hour', event.time_meet.hour()).set('minute', event.time_meet.minute());
-            if (currentTime.isAfter(appointmentTime)) {
-                handleEndPost();
-            }
-        };
-        const intervalId = setInterval(checkTimeToHidePost, 60000);
-        return () => clearInterval(intervalId);
-    }, [event]);
 
     const confirmEndPost = () => {
         setOpenDialog(true);
@@ -94,7 +81,7 @@ const DetailsPage = () => {
         };
 
         try {
-            await axios.post(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate`, participantData, {
+            await axios.post(`http://localhost:8080/api/participate`, participantData, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'Successfully joined the event!', severity: 'success' });
@@ -115,12 +102,7 @@ const DetailsPage = () => {
                 padding: { xs: 2, md: 5 },
                 marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
             }}>
-                <Typography
-                    id="event-name"
-                    variant="h4"
-                    gutterBottom
-                    sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}
-                >
+                <Typography id="event-name" variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}>
                     {event.name_games || 'Untitled Event'}
                 </Typography>
                 <Typography id="event-date" variant="body1" gutterBottom>
@@ -140,6 +122,7 @@ const DetailsPage = () => {
                 <Typography id="event-participant-count" variant="body1" gutterBottom>
                     Participants: {event.num_people || 1}
                 </Typography>
+
                 <Grid id="actions-grid" container spacing={2} sx={{ marginTop: 3 }}>
                     {!isOwner && (
                         <Grid item xs={12} sm={6}>
@@ -167,6 +150,7 @@ const DetailsPage = () => {
                     </Grid>
                 </Grid>
             </Paper>
+
             {isOwner && (
                 <Paper id="manage-event-paper" elevation={3} sx={{
                     padding: { xs: 2, md: 5 },
@@ -211,34 +195,41 @@ const DetailsPage = () => {
                 </Paper>
             )}
 
+            {/* Chat Section */}
+            <Paper id="chat-paper" elevation={3} sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
+                <Typography id="chat-title" variant="h5" gutterBottom>Event Chat</Typography>
+
+                {/* Chat Component */}
+                <Chat userId={userId} username={username} />
+            </Paper>
+
+            {/* Confirmation Dialog */}
+            <Dialog id="end-post-dialog" open={openDialog} onClose={() => handleDialogClose(false)}>
+                <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
+                <DialogContent id="end-post-dialog-content">
+                    <DialogContentText id="end-post-dialog-content-text">
+                        Are you sure you want to end this post?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions id="end-post-dialog-actions">
+                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button">Cancel</Button>
+                    <Button onClick={() => handleDialogClose(true)} id="confirm-end-post-button" color="primary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Snackbar */}
             <Snackbar
-                id="snackbar-alert"
                 open={alertMessage.open}
-                autoHideDuration={3000}
+                autoHideDuration={6000}
                 onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                    severity={alertMessage.severity} sx={{ width: '100%' }}>
+                <Alert onClose={() => setAlertMessage({ ...alertMessage, open: false })} severity={alertMessage.severity}>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
-
-            <Dialog
-                id="confirm-end-dialog"
-                open={openDialog}
-                onClose={() => setOpenDialog(false)}
-            >
-                <DialogTitle>{"End Post?"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Do you really want to end this post? This action is irreversible.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button id="cancel-end-button" onClick={() => handleDialogClose(false)}>Cancel</Button>
-                    <Button id="confirm-end-button" onClick={() => handleDialogClose(true)} color="error">End Post</Button>
-                </DialogActions>
-            </Dialog>
         </Container>
     );
 };
