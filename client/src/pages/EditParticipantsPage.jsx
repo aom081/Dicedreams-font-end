@@ -27,7 +27,7 @@ const EditParticipantsPage = () => {
             }
 
             try {
-                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/post/${id}`, {
+                const response = await axios.get(`http://localhost:8080/api/participate/post/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 console.log("Participants fetched:", response.data); // Debugging: Fetch response
@@ -47,7 +47,7 @@ const EditParticipantsPage = () => {
 
     const updateParticipantStatus = async (participantId, status) => {
         try {
-            const response = await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/participate/${participantId}`, { participant_status: status }, {
+            const response = await axios.put(`http://localhost:8080/participate/${participantId}`, { participant_status: status }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             if (!response.data) throw new Error('Failed to update status');
@@ -66,7 +66,7 @@ const EditParticipantsPage = () => {
         };
 
         try {
-            const response = await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`, payload, {
+            const response = await axios.put(`http://localhost:8080/api/participate/${part_Id}`, payload, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
@@ -93,7 +93,7 @@ const EditParticipantsPage = () => {
         };
 
         try {
-            const response = await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`, {
+            const response = await axios.delete(`http://localhost:8080/api/participate/${part_Id}`, {
                 data: payload,
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -115,7 +115,7 @@ const EditParticipantsPage = () => {
         };
 
         try {
-            const response = await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`, {
+            const response = await axios.delete(`http://localhost:8080/api/participate/${part_Id}`, {
                 data: payload,
                 headers: { Authorization: `Bearer ${accessToken}` }
             });

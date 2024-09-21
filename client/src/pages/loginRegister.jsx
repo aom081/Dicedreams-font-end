@@ -15,6 +15,7 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
+  AlertTitle,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -61,12 +62,18 @@ function LoginPage() {
 
   const handleLogin = async () => {
     console.log("Attempting login with data:", formData);
+
+    // Check identifier field (email or username)
     if (!formData.identifier) {
       setAlert({ open: true, message: "กรอก E-mail หรือ Username ไม่ถูกต้อง", severity: "error" });
+      document.getElementById("identifier").focus(); // Move cursor to identifier field
       return;
     }
+
+    // Check password field
     if (!formData.loginPassword) {
       setAlert({ open: true, message: "กรอก Password ไม่ถูกต้อง", severity: "error" });
+      document.getElementById("loginPassword").focus(); // Move cursor to password field
       return;
     }
 
@@ -76,14 +83,14 @@ function LoginPage() {
         identifier: formData.identifier,
         password: formData.loginPassword,
       });
-      console.log("Login response:", response);
+
       const { access_token } = response.data;
       login(access_token);
       setAlert({ open: true, message: "เข้าสู่ระบบสำเร็จ!", severity: "success" });
 
       setTimeout(() => {
         navigate("/");
-      }, 1500); // Adjust the delay as needed
+      }, 1500);
     } catch (error) {
       console.error("Login error:", error);
       const errorMessage =
@@ -97,53 +104,69 @@ function LoginPage() {
 
   const handleRegister = async () => {
     console.log("Attempting registration with data:", formData);
+
+    // Array of required fields
     const requiredFields = [
-      { name: "first_name", label: "First Name" },
-      { name: "last_name", label: "Last Name" },
-      { name: "username", label: "Username" },
-      { name: "phone_number", label: "Telephone Number" },
-      { name: "email", label: "E-mail" },
-      { name: "password", label: "Password" },
-      { name: "birthday", label: "Day/month/year of birth" },
-      { name: "gender", label: "Gender" },
+      { name: "first_name", label: "First Name", id: "first_name" },
+      { name: "last_name", label: "Last Name", id: "last_name" },
+      { name: "username", label: "Username", id: "username" },
+      { name: "phone_number", label: "Telephone Number", id: "phone_number" },
+      { name: "email", label: "E-mail", id: "email" },
+      { name: "password", label: "Password", id: "password" },
+      { name: "birthday", label: "Day/month/year of birth", id: "birthday" },
+      { name: "gender", label: "Gender", id: "gender-radio-group" },
     ];
 
+    // Loop to check required fields
     for (const field of requiredFields) {
       if (!formData[field.name]) {
         console.log(`${field.label} is missing`);
         setAlert({ open: true, message: `ไม่กรอก ${field.label}`, severity: "error" });
+        document.getElementById(field.id).focus(); // Move cursor to the error field
         return;
       }
     }
 
+    // Check password length
     if (formData.password.length <= 8) {
       setAlert({ open: true, message: "รหัสผ่านต้องมีความยาวมากกว่า 8 ตัวอักษร", severity: "error" });
+      document.getElementById("password").focus(); // Move cursor to password field
       return;
     }
 
+    // Check user age
     const age = dayjs().diff(formData.birthday, "year");
     if (age < 12) {
       setAlert({ open: true, message: "คุณต้องมีอายุอย่างน้อย 12 ปีเพื่อสมัครสมาชิก", severity: "error" });
+      document.getElementById("birthday").focus(); // Move cursor to birthday field
       return;
     }
 
     setLoading(true);
+
     try {
+      // Check if username or email already exists
+      const duplicateCheckResponse = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users/check-duplicate", {
+        username: formData.username,
+        email: formData.email,
+      });
+
+      if (duplicateCheckResponse.data.isDuplicate) {
+        if (duplicateCheckResponse.data.duplicateField === "username") {
+          setAlert({ open: true, message: "Username นี้มีผู้ใช้งานแล้ว", severity: "error" });
+          document.getElementById("username").focus(); // Move cursor to username field
+        } else if (duplicateCheckResponse.data.duplicateField === "email") {
+          setAlert({ open: true, message: "E-mail นี้มีผู้ใช้งานแล้ว", severity: "error" });
+          document.getElementById("email").focus(); // Move cursor to email field
+        }
+        setLoading(false);
+        return;
+      }
+
       const formattedBirthday = dayjs(formData.birthday).format("MM/DD/YYYY");
-
-      const convertImageToBase64 = (imageFile) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(imageFile);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = (error) => reject(error);
-        });
-      };
-
       const base64Image = formData.user_image
         ? await convertImageToBase64(formData.user_image)
         : null;
-      console.log("Base64 image:", base64Image);
 
       const dataToSend = {
         first_name: formData.first_name,
@@ -156,17 +179,12 @@ function LoginPage() {
         gender: formData.gender,
         user_image: base64Image,
       };
-      console.log("Sending registration data:", dataToSend);
 
-      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("Registration response:", response);
+      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend);
 
       setAlert({ open: true, message: "ลงทะเบียนสำเร็จ!", severity: "success" });
 
+      // Reset form data after successful registration
       setFormData({
         first_name: "",
         last_name: "",
@@ -181,8 +199,8 @@ function LoginPage() {
         user_image: null,
         user_image_preview: null,
       });
-      setTimeout(() => setAlert({ open: false, message: "", severity: "success" }), 6000);
 
+      setTimeout(() => setAlert({ open: false, message: "", severity: "success" }), 6000);
       setIsRegister(false);
     } catch (error) {
       console.error("Registration error:", error);
@@ -526,8 +544,12 @@ function LoginPage() {
         autoHideDuration={6000}
         onClose={handleCloseAlert}
         id="login-snackbar"
+        sx={{ width: "100%" }}
       >
-        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "100%" }}>
+        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+          <AlertTitle sx={{ fontSize: "1.50rem" }}> 
+            {alert.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
           {alert.message}
         </Alert>
       </Snackbar>
