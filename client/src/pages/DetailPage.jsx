@@ -1,11 +1,10 @@
-// DetailsPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     Container, Paper, Typography, Button, Box, Snackbar, Alert, Dialog,
-    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, TextField
-} from '@mui/material'; // Added TextField
+    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid
+} from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 import dayjs from 'dayjs';
 import Chat from '../components/Chat'; // Importing Chat component
@@ -22,6 +21,7 @@ const DetailsPage = () => {
         date_meet: dayjs(),
         time_meet: dayjs(),
         games_image: '',
+        chat_id: '', // Add chat_id to initial state
     });
 
     const [participants, setParticipants] = useState([]);
@@ -40,6 +40,7 @@ const DetailsPage = () => {
                     ...eventData,
                     date_meet: dayjs(eventData.date_meet),
                     time_meet: dayjs(eventData.time_meet, "HH:mm"),
+                    chat_id: eventData.chat_id || '', // Ensure chat_id is set
                 });
                 setParticipants(eventData.participants || []);
             } catch (error) {
@@ -56,10 +57,10 @@ const DetailsPage = () => {
             await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            setAlertMessage({ open: true, message: 'ลบโพสต์นัดเล่น สำเร็จ', severity: 'success' });
+            setAlertMessage({ open: true, message: 'Post successfully ended', severity: 'success' });
             setTimeout(() => navigate('/'), 1500);
         } catch (error) {
-            setAlertMessage({ open: true, message: 'Failed to update post status.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'Failed to end post.', severity: 'error' });
         }
     };
 
@@ -195,13 +196,13 @@ const DetailsPage = () => {
                 </Paper>
             )}
 
-            {/* Chat Section */}
-            <Paper id="chat-paper" elevation={3} sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
-                <Typography id="chat-title" variant="h5" gutterBottom>Event Chat</Typography>
-
-                {/* Chat Component */}
-                <Chat userId={userId} username={username} />
-            </Paper>
+            {/* Chat Component */}
+            <Chat
+                userId={userId}
+                username={username}
+                chat_id={event.chat_id}
+                post_games_id={id} // Pass the post_games_id correctly
+            />
 
             {/* Confirmation Dialog */}
             <Dialog id="end-post-dialog" open={openDialog} onClose={() => handleDialogClose(false)}>
