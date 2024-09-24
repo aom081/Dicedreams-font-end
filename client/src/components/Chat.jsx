@@ -7,18 +7,19 @@ const Chat = ({ userId, username, post_games_id }) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [editingMessage, setEditingMessage] = useState(null); // To track editing state
     const messagesEndRef = useRef(null);
 
     console.log('Chat component loaded with post_games_id:', post_games_id);
 
-    // New function to fetch chat messages
+    // Fetch chat messages
     const fetchChatMessages = async (postId) => {
         try {
             const response = await fetch(
                 `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/post/${postId}`,
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Use stored access token
+                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
                     },
                 }
             );
@@ -38,11 +39,11 @@ const Chat = ({ userId, username, post_games_id }) => {
         }
     };
 
-    // Function to send a new message
+    // Send or update a message
     const sendMessage = async () => {
         if (chatMessage.trim()) {
             try {
-                const token = localStorage.getItem('access_token'); // Assuming you're storing the token in local storage
+                const token = localStorage.getItem('access_token');
                 const newMessage = {
                     message: chatMessage,
                     datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
@@ -50,21 +51,50 @@ const Chat = ({ userId, username, post_games_id }) => {
                     post_games_id: post_games_id
                 };
 
-                const response = await fetch(
-                    `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${token}`, // Include the JWT token in the request header
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(newMessage)
-                    }
-                );
+                let response;
+
+                if (editingMessage) {
+                    // Update existing message
+                    response = await fetch(
+                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${editingMessage.chat_id}`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newMessage)
+                        }
+                    );
+                } else {
+                    // Send new message
+                    response = await fetch(
+                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newMessage)
+                        }
+                    );
+                }
 
                 if (response.ok) {
                     const data = await response.json();
-                    setMessages((prevMessages) => [...prevMessages, data]); // Append new message
+                    if (editingMessage) {
+                        // Update the message in the list
+                        setMessages((prevMessages) =>
+                            prevMessages.map((msg) =>
+                                msg.chat_id === editingMessage.chat_id ? data : msg
+                            )
+                        );
+                        setEditingMessage(null); // Clear edit state
+                    } else {
+                        // Append new message
+                        setMessages((prevMessages) => [...prevMessages, data]);
+                    }
                     setChatMessage(''); // Clear input field
                 } else {
                     console.error("Failed to send message:", await response.text());
@@ -75,6 +105,44 @@ const Chat = ({ userId, username, post_games_id }) => {
                 setErrorMessage('Failed to send message.');
             }
         }
+    };
+
+    // Delete a message
+    const handleDeleteMessage = async (chatId) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${chatId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.ok) {
+                setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== chatId));
+            } else {
+                console.error("Failed to delete message:", await response.text());
+                setErrorMessage('Failed to delete message.');
+            }
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            setErrorMessage('Failed to delete message.');
+        }
+    };
+
+    // Edit a message
+    const handleEditMessage = (message) => {
+        setEditingMessage(message);
+        setChatMessage(message.message); // Populate the input with the message content
+    };
+
+    // Cancel editing
+    const cancelEdit = () => {
+        setEditingMessage(null);
+        setChatMessage('');
     };
 
     // Fetch messages on component mount and set up polling
@@ -100,8 +168,8 @@ const Chat = ({ userId, username, post_games_id }) => {
                 ) : messages.length > 0 ? (
                     messages.map((msg) => (
                         <Box
-                            key={msg.id}
-                            id={`message-${msg.id}`}
+                            key={msg.chat_id}
+                            id={`message-${msg.chat_id}`}
                             sx={{
                                 backgroundColor: msg.user_id === userId ? '#3f51b5' : '#757575',
                                 color: 'white',
@@ -109,22 +177,42 @@ const Chat = ({ userId, username, post_games_id }) => {
                                 marginBottom: 1,
                                 borderRadius: '8px',
                                 alignSelf: msg.user_id === userId ? 'flex-end' : 'flex-start',
-                                maxWidth: '80%'
+                                maxWidth: '80%',
+                                position: 'relative', // For positioning the buttons
                             }}
                         >
-                            <Typography variant="subtitle2" id={`message-username-${msg.id}`}>
+                            <Typography variant="subtitle2" id={`message-username-${msg.chat_id}`}>
                                 {msg.username}
                                 <Typography
                                     variant="caption"
                                     sx={{ marginLeft: 1, fontSize: '0.8rem' }}
-                                    id={`message-timestamp-${msg.id}`}
+                                    id={`message-timestamp-${msg.chat_id}`}
                                 >
                                     {msg.datetime_chat}
                                 </Typography>
                             </Typography>
-                            <Typography variant="body2" id={`message-text-${msg.id}`}>
+                            <Typography variant="body2" id={`message-text-${msg.chat_id}`}>
                                 {msg.message}
                             </Typography>
+
+                            {msg.user_id === userId && (
+                                <Box sx={{ position: 'absolute', right: 0, top: 0 }}>
+                                    <Button
+                                        size="small"
+                                        onClick={() => handleEditMessage(msg)}
+                                        sx={{ color: 'white' }}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        onClick={() => handleDeleteMessage(msg.chat_id)}
+                                        sx={{ color: 'white' }}
+                                    >
+                                        Delete
+                                    </Button>
+                                </Box>
+                            )}
                         </Box>
                     ))
                 ) : (
@@ -176,12 +264,23 @@ const Chat = ({ userId, username, post_games_id }) => {
                         disabled={!chatMessage.trim()}
                         sx={{ height: '100%' }}
                     >
-                        Send
+                        {editingMessage ? 'Update' : 'Send'}
                     </Button>
+                    {editingMessage && (
+                        <Button
+                            id="cancel-edit-button"
+                            fullWidth
+                            variant="contained"
+                            color="secondary"
+                            onClick={cancelEdit}
+                            sx={{ height: '100%', marginTop: 1 }}
+                        >
+                            Cancel
+                        </Button>
+                    )}
                 </Grid>
             </Grid>
 
-            {/* Error Snackbar */}
             <Snackbar
                 open={Boolean(errorMessage)}
                 autoHideDuration={6000}
