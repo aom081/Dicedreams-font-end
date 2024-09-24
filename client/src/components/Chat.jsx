@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, TextField, Button, Grid, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert, IconButton, Menu, MenuItem } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import dayjs from 'dayjs';
 
 const Chat = ({ userId, username, post_games_id }) => {
@@ -7,42 +8,40 @@ const Chat = ({ userId, username, post_games_id }) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [editingMessage, setEditingMessage] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [currentMessage, setCurrentMessage] = useState(null);
     const messagesEndRef = useRef(null);
 
-    console.log('Chat component loaded with post_games_id:', post_games_id);
-
-    // New function to fetch chat messages
     const fetchChatMessages = async (postId) => {
         try {
             const response = await fetch(
                 `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/post/${postId}`,
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Use stored access token
+                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
                     },
                 }
             );
 
             if (response.ok) {
                 const data = await response.json();
-                setMessages(data); // Set fetched messages
+                console.log(data); // Add this line to inspect the response structure
+                setMessages(data);
             } else {
-                console.error("Failed to fetch chat messages:", await response.text());
                 setErrorMessage('Failed to load messages.');
             }
         } catch (error) {
-            console.error("Error fetching chat messages:", error);
             setErrorMessage('Failed to load messages.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Function to send a new message
     const sendMessage = async () => {
         if (chatMessage.trim()) {
             try {
-                const token = localStorage.getItem('access_token'); // Assuming you're storing the token in local storage
+                const token = localStorage.getItem('access_token');
                 const newMessage = {
                     message: chatMessage,
                     datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
@@ -50,25 +49,54 @@ const Chat = ({ userId, username, post_games_id }) => {
                     post_games_id: post_games_id
                 };
 
-                const response = await fetch(
-                    `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${token}`, // Include the JWT token in the request header
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(newMessage)
-                    }
-                );
+                let response;
+                if (editingMessage) {
+                    response = await fetch(
+                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${editingMessage.chat_id}`,
+                        {
+                            method: 'PUT',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newMessage)
+                        }
+                    );
+                } else {
+                    response = await fetch(
+                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(newMessage)
+                        }
+                    );
+                }
 
                 if (response.ok) {
                     const data = await response.json();
-                    setMessages((prevMessages) => [...prevMessages, data]); // Append new message
-                    setChatMessage(''); // Clear input field
+                    if (editingMessage) {
+                        setMessages((prevMessages) =>
+                            prevMessages.map((msg) =>
+                                msg.chat_id === editingMessage.chat_id ? data : msg
+                            )
+                        );
+                        setEditingMessage(null);
+                    } else {
+                        setMessages((prevMessages) => [...prevMessages, data]);
+                        setChatMessage(''); // Clear input after sending
+                    }
+                    scrollToBottom(); // Scroll to latest message
                 } else {
-                    console.error("Failed to send message:", await response.text());
-                    setErrorMessage('Failed to send message.');
+                    const errorText = await response.text();
+                    if (response.status === 500) {
+                        setErrorMessage('Internal Server Error. Please try again.');
+                    } else {
+                        setErrorMessage(`Failed to send message: ${errorText}`);
+                    }
                 }
             } catch (error) {
                 console.error("Error sending message:", error);
@@ -77,117 +105,175 @@ const Chat = ({ userId, username, post_games_id }) => {
         }
     };
 
-    // Fetch messages on component mount and set up polling
+    const handleDeleteMessage = async (chatId) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${chatId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.ok) {
+                setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== chatId));
+                handleMenuClose();
+            } else {
+                setErrorMessage('Failed to delete message.');
+            }
+        } catch (error) {
+            setErrorMessage('Failed to delete message.');
+        }
+    };
+
+    const handleEditMessage = (message) => {
+        setEditingMessage(message);
+        setChatMessage(message.message);
+        handleMenuClose();
+    };
+
+    const cancelEdit = () => {
+        setEditingMessage(null);
+        setChatMessage('');
+    };
+
+    const handleMenuOpen = (event, message) => {
+        setAnchorEl(event.currentTarget);
+        setCurrentMessage(message);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setCurrentMessage(null);
+    };
+
     useEffect(() => {
         if (post_games_id) {
-            fetchChatMessages(post_games_id); // Fetch messages
-            const interval = setInterval(() => fetchChatMessages(post_games_id), 5000); // Poll every 5 seconds
-            return () => clearInterval(interval); // Cleanup on unmount
-        } else {
-            console.error('No post_games_id provided!');
+            fetchChatMessages(post_games_id);
+            const interval = setInterval(() => fetchChatMessages(post_games_id), 5000);
+            return () => clearInterval(interval);
         }
     }, [post_games_id]);
 
     return (
-        <Box id="chat-paper" elevation={3} sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
-            <Typography id="chat-title" variant="h5" gutterBottom>Chat</Typography>
-            <Box
-                id="chat-messages"
-                sx={{ height: 300, overflowY: 'auto', backgroundColor: '#333', padding: 2, borderRadius: 1 }}
-            >
+        <Box sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
+            <Typography variant="h5" gutterBottom>Chat</Typography>
+            <Box sx={{ height: 300, overflowY: 'auto', backgroundColor: '#333', padding: 2, borderRadius: 1 }}>
                 {loading ? (
-                    <Typography id="loading-messages" variant="body2">Loading messages...</Typography>
+                    <Typography variant="body2">Loading messages...</Typography>
                 ) : messages.length > 0 ? (
                     messages.map((msg) => (
                         <Box
-                            key={msg.id}
-                            id={`message-${msg.id}`}
+                            key={msg.chat_id}
                             sx={{
                                 backgroundColor: msg.user_id === userId ? '#3f51b5' : '#757575',
                                 color: 'white',
                                 padding: 1,
                                 marginBottom: 1,
                                 borderRadius: '8px',
-                                alignSelf: msg.user_id === userId ? 'flex-end' : 'flex-start',
-                                maxWidth: '80%'
+                                display: 'flex',
+                                alignItems: 'center',
+                                maxWidth: '80%',
+                                position: 'relative',
+                                '&:hover .message-menu-icon': { display: 'inline-block' },
                             }}
                         >
-                            <Typography variant="subtitle2" id={`message-username-${msg.id}`}>
-                                {msg.username}
-                                <Typography
-                                    variant="caption"
-                                    sx={{ marginLeft: 1, fontSize: '0.8rem' }}
-                                    id={`message-timestamp-${msg.id}`}
-                                >
-                                    {msg.datetime_chat}
+                            <Avatar
+                                alt={msg.user.username} // Updated to access username inside user object
+                                src={msg.user.user_image} // Updated to access user_image inside user object
+                                sx={{ marginRight: 1 }}
+                            />
+                            <Box>
+                                <Typography variant="subtitle2">
+                                    {msg.user.username} {/* Updated to access username inside user object */}
+                                    <Typography variant="caption" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+                                        {msg.datetime_chat}
+                                    </Typography>
                                 </Typography>
-                            </Typography>
-                            <Typography variant="body2" id={`message-text-${msg.id}`}>
-                                {msg.message}
-                            </Typography>
+                                <Typography variant="body2">
+                                    {msg.message}
+                                </Typography>
+                            </Box>
+                            {msg.user_id === userId && (
+                                <>
+                                    <IconButton
+                                        className="message-menu-icon"
+                                        aria-label="settings"
+                                        onClick={(event) => handleMenuOpen(event, msg)}
+                                        sx={{ position: 'absolute', top: 0, right: 0, display: 'none' }}
+                                    >
+                                        <MoreVertIcon />
+                                    </IconButton>
+                                    <Menu
+                                        anchorEl={anchorEl}
+                                        open={Boolean(anchorEl) && currentMessage?.chat_id === msg.chat_id}
+                                        onClose={handleMenuClose}
+                                    >
+                                        <MenuItem onClick={() => handleEditMessage(msg)}>Edit</MenuItem>
+                                        <MenuItem onClick={() => handleDeleteMessage(msg.chat_id)}>Delete</MenuItem>
+                                    </Menu>
+                                </>
+                            )}
                         </Box>
                     ))
                 ) : (
-                    <Typography id="no-messages" variant="body2">No messages yet.</Typography>
+                    <Typography variant="body2">No messages yet. Start the conversation!</Typography>
                 )}
                 <div ref={messagesEndRef} />
             </Box>
-
-            <Grid id="message-input-grid" container spacing={2} sx={{ marginTop: 2 }}>
-                <Grid item xs={9}>
-                    <TextField
-                        id="message-input"
-                        fullWidth
+            <TextField
+                label="Enter message"
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                }}
+                sx={{ marginTop: 2, backgroundColor: 'white', borderRadius: 1 }}
+                InputProps={{ style: { color: 'black' } }} // Text color changed to gray
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                <Button
+                    variant="contained"
+                    sx={{
+                        backgroundColor: editingMessage ? 'yellow' : 'crimson', // Yellow background for edit
+                        color: editingMessage ? 'black' : 'white', // Black text for edit
+                        '&:hover': {
+                            backgroundColor: editingMessage ? 'darkorange' : '#67091C' // Darker yellow on hover
+                        }
+                    }}
+                    onClick={sendMessage}
+                >
+                    {editingMessage ? 'Edit' : 'Send'}
+                </Button>
+                {editingMessage && (
+                    <Button
                         variant="outlined"
-                        value={chatMessage}
-                        onChange={(e) => setChatMessage(e.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === 'Enter' && !event.shiftKey) {
-                                event.preventDefault();
-                                sendMessage();
+                        sx={{
+                            borderColor: 'red',
+                            color: 'red',
+                            backgroundColor: 'transparent', // Transparent background for Cancel
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 0, 0, 0.1)', // Slight red hover effect
                             }
                         }}
-                        placeholder="Type your message"
-                        InputProps={{ style: { color: 'white' } }}
-                        multiline
-                        maxRows={4}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                    borderColor: '#555',
-                                },
-                                '&:hover fieldset': {
-                                    borderColor: '#777',
-                                },
-                                '&.Mui-focused fieldset': {
-                                    borderColor: '#3f51b5',
-                                },
-                            },
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={3}>
-                    <Button
-                        id="send-message-button"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        onClick={sendMessage}
-                        disabled={!chatMessage.trim()}
-                        sx={{ height: '100%' }}
+                        onClick={cancelEdit}
                     >
-                        Send
+                        Cancel Edit
                     </Button>
-                </Grid>
-            </Grid>
+                )}
+            </Box>
 
-            {/* Error Snackbar */}
-            <Snackbar
-                open={Boolean(errorMessage)}
-                autoHideDuration={6000}
-                onClose={() => setErrorMessage('')}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
+
+            <Snackbar open={Boolean(errorMessage)} autoHideDuration={6000} onClose={() => setErrorMessage('')}>
                 <Alert onClose={() => setErrorMessage('')} severity="error" sx={{ width: '100%' }}>
                     {errorMessage}
                 </Alert>

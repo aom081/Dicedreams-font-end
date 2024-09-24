@@ -152,7 +152,7 @@ function EventCard(props) {
                     >
                         {username ? username[0] : 'U'}
                     </Avatar>
-                }
+                }   
                 action={
                     currentUserId === userId && (
                         <>
