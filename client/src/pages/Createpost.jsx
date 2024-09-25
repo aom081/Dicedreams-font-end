@@ -15,10 +15,15 @@ import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
 import { useMediaQuery, useTheme } from '@mui/material';
-import { predefinedGames } from '../constants/gameList'
+import { predefinedGames } from '../constants/gameList';
 
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
@@ -36,6 +41,7 @@ const CreatePost = () => {
   const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: '' });
   const [gameOption, setGameOption] = useState('');
   const [customGameName, setCustomGameName] = useState('');
+  const [openDialog, setOpenDialog] = useState(false); // State for dialog
   const fileInputRef = useRef(null);
 
   const theme = useTheme();
@@ -176,11 +182,20 @@ const CreatePost = () => {
   };
 
   const handleCancel = () => {
-    navigate('/');
+    setOpenDialog(true); // Open the dialog
   };
 
   const handleCloseAlert = () => {
     setAlertMessage({ open: false, message: '', severity: '' });
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Close the dialog
+  };
+
+  const handleConfirmCancel = () => {
+    setOpenDialog(false);
+    navigate('/'); // Navigate back after confirmation
   };
 
   return (
@@ -218,7 +233,6 @@ const CreatePost = () => {
               sx={{ mb: 2 }}
               inputProps={{ 'data-testid': 'game-select', id: 'game-select' }}
             >
-
               <MenuItem value="" disabled>
                 Select a board game
               </MenuItem>
@@ -316,10 +330,10 @@ const CreatePost = () => {
               onChange={handleImageChange}
               id="file-input"
             />
-            {previewImage && <img 
-            src={previewImage} 
-            alt="Preview" 
-            style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
+            {previewImage && <img
+              src={previewImage}
+              alt="Preview"
+              style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
 
             <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button
@@ -358,6 +372,29 @@ const CreatePost = () => {
         </CardContent>
       </Card>
 
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"ยกเลิกการสร้างโพสต์?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            คุณแน่ใจหรือไม่ว่าต้องการยกเลิก การเปลี่ยนแปลงที่ยังไม่ได้บันทึกจะสูญหายไป
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            ไม่
+          </Button>
+          <Button onClick={handleConfirmCancel} color="error" autoFocus>
+            ใช่
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={alertMessage.open}
         autoHideDuration={6000}
@@ -369,8 +406,6 @@ const CreatePost = () => {
           {alertMessage.message}
         </Alert>
       </Snackbar>
-
-      
     </Box>
   );
 };

@@ -144,7 +144,7 @@ const DetailsPage = () => {
                             fullWidth
                             variant="contained"
                             color="primary"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(-1)}
                         >
                             Return to Home
                         </Button>
@@ -212,13 +212,13 @@ const DetailsPage = () => {
                 <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
                 <DialogContent id="end-post-dialog-content">
                     <DialogContentText id="end-post-dialog-content-text">
-                        Are you sure you want to end this post?
+                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions id="end-post-dialog-actions">
-                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button" color='error'>Cancel</Button>
-                    <Button onClick={() => handleDialogClose(true)} id="confirm-end-post-button" color="primary">
-                        Confirm
+                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button" color='primary'>ยกเลิก</Button>
+                    <Button onClick={() => handleDialogClose(true)} id="confirm-end-post-button" color="error">
+                        ยืนยัน
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -300,11 +300,11 @@ const EditParticipantsPage = () => {
                 <DialogTitle id="refuse-dialog-title">Refuse Participant</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to refuse this participant?
+                        คุณแน่ใจหรือไม่ว่าต้องการปฏิเสธผู้เข้าร่วมรายนี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setRefuseDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setRefuseDialogOpen(false)}>ยกเลิก</Button>
                     <Button onClick={handleRefuseConfirm} color="error">Refuse</Button>
                 </DialogActions>
             </Dialog>
@@ -318,11 +318,11 @@ const EditParticipantsPage = () => {
                 <DialogTitle id="confirm-dialog-title">Remove Participant</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to remove this participant?
+                        คุณแน่ใจหรือไม่ว่าต้องการลบผู้เข้าร่วมรายนี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setConfirmDialogOpen(false)}>ยกเลิก</Button>
                     <Button onClick={handleRemoveConfirm} color="error">Remove</Button>
                 </DialogActions>
             </Dialog>
