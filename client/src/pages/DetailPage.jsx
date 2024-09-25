@@ -205,7 +205,10 @@ const DetailsPage = () => {
             />
 
             {/* Confirmation Dialog */}
-            <Dialog id="end-post-dialog" open={openDialog} onClose={() => handleDialogClose(false)}>
+            <Dialog 
+            id="end-post-dialog" 
+            open={openDialog} 
+            onClose={() => handleDialogClose(false)}>
                 <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
                 <DialogContent id="end-post-dialog-content">
                     <DialogContentText id="end-post-dialog-content-text">
@@ -213,7 +216,7 @@ const DetailsPage = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions id="end-post-dialog-actions">
-                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button">Cancel</Button>
+                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button" color='error'>Cancel</Button>
                     <Button onClick={() => handleDialogClose(true)} id="confirm-end-post-button" color="primary">
                         Confirm
                     </Button>

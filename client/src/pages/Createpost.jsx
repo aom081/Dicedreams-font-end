@@ -369,6 +369,8 @@ const CreatePost = () => {
           {alertMessage.message}
         </Alert>
       </Snackbar>
+
+      
     </Box>
   );
 };
