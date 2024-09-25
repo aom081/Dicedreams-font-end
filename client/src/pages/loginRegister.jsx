@@ -145,24 +145,6 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      // Check if username or email already exists
-      const duplicateCheckResponse = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users/check-duplicate", {
-        username: formData.username,
-        email: formData.email,
-      });
-
-      if (duplicateCheckResponse.data.isDuplicate) {
-        if (duplicateCheckResponse.data.duplicateField === "username") {
-          setAlert({ open: true, message: "Username นี้มีผู้ใช้งานแล้ว", severity: "error" });
-          document.getElementById("username").focus(); // Move cursor to username field
-        } else if (duplicateCheckResponse.data.duplicateField === "email") {
-          setAlert({ open: true, message: "E-mail นี้มีผู้ใช้งานแล้ว", severity: "error" });
-          document.getElementById("email").focus(); // Move cursor to email field
-        }
-        setLoading(false);
-        return;
-      }
-
       const formattedBirthday = dayjs(formData.birthday).format("MM/DD/YYYY");
       const base64Image = formData.user_image
         ? await convertImageToBase64(formData.user_image)
@@ -204,9 +186,18 @@ function LoginPage() {
       setIsRegister(false);
     } catch (error) {
       console.error("Registration error:", error);
+
+      // Checking for duplicate username or email error
       const errorMessage =
         error.response?.data?.message ||
-        (error.request ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง" : "ข้อผิดพลาด: " + error.message);
+        (error.response?.data?.includes("E-mail is already in use")
+          ? "E-mail นี้ถูกใช้แล้ว"
+          : error.response?.data?.includes("Username is already taken")
+            ? "Username นี้ถูกใช้แล้ว"
+            : error.request
+              ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง"
+              : "ข้อผิดพลาด: " + error.message);
+
       setAlert({ open: true, message: errorMessage, severity: "error" });
     } finally {
       setLoading(false);
@@ -245,6 +236,20 @@ function LoginPage() {
   const handleCloseAlert = () => {
     console.log("Closing alert");
     setAlert({ open: false, message: "", severity: "success" });
+  };
+
+  // Function to convert image to Base64
+  const convertImageToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+    });
   };
 
   return (
