@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, Box, Snackbar, Alert, Dialog,
+    Container, Paper, Typography, Button, Box, Snackbar, Alert, AlertTitle, Dialog,
     DialogActions, DialogContent, DialogContentText, DialogTitle, Grid
 } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
@@ -225,12 +225,21 @@ const DetailsPage = () => {
 
             {/* Snackbar */}
             <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                 open={alertMessage.open}
                 autoHideDuration={6000}
                 onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                id="details-snackbar"
+                sx={{ width: "100%" }} // Adjusting width of the Snackbar
             >
-                <Alert onClose={() => setAlertMessage({ ...alertMessage, open: false })} severity={alertMessage.severity}>
+                <Alert
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                    severity={alertMessage.severity}
+                    sx={{ width: "80%", fontSize: "1rem" }} // Setting width of the Alert and font size for message
+                >
+                    <AlertTitle sx={{ fontSize: "1.50rem" }}> {/* Alert title font size */}
+                        {alertMessage.severity === "error" ? "Error" : "Success"}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>

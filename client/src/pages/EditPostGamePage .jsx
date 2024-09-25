@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { AuthContext } from '../Auth/AuthContext';
@@ -330,12 +330,17 @@ const EditPostGamePage = () => {
 
             {/* Snackbar Notification */}
             <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                 open={alertMessage.open}
-                autoHideDuration={3000}
+                autoHideDuration={6000} // Increased duration
                 onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                id="edit-snackbar"
+                sx={{ width: "100%" }}
             >
-                <Alert onClose={handleCloseSnackbar} severity={alertMessage.severity} sx={{ width: '100%' }}>
+                <Alert onClose={handleCloseSnackbar} severity={alertMessage.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+                    <AlertTitle sx={{ fontSize: "1.5rem" }}>
+                        {alertMessage.severity === "error" ? "Error" : "Success"}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>

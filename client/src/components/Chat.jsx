@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert, IconButton, Menu, MenuItem } from '@mui/material';
+import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert,AlertTitle, IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import dayjs from 'dayjs';
 
@@ -273,8 +273,20 @@ const Chat = ({ userId, username, post_games_id }) => {
             </Box>
 
 
-            <Snackbar open={Boolean(errorMessage)} autoHideDuration={6000} onClose={() => setErrorMessage('')}>
-                <Alert onClose={() => setErrorMessage('')} severity="error" sx={{ width: '100%' }}>
+            <Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}  // Centered Snackbar
+                open={Boolean(errorMessage)}
+                autoHideDuration={6000}
+                onClose={() => setErrorMessage('')}
+                id="chat-snackbar"  // Unique ID for easier testing
+                sx={{ width: '100%' }}  // Full width Snackbar
+            >
+                <Alert
+                    onClose={() => setErrorMessage('')}
+                    severity="error"
+                    sx={{ width: '80%', fontSize: '1rem' }}  // Width and font size for message content
+                >
+                    <AlertTitle sx={{ fontSize: '1.50rem' }}>Error</AlertTitle>  // Styled title
                     {errorMessage}
                 </Alert>
             </Snackbar>

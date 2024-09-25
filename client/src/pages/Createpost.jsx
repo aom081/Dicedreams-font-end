@@ -15,6 +15,7 @@ import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle'; // Import AlertTitle
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -24,7 +25,6 @@ import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { predefinedGames } from '../constants/gameList';
-
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -396,13 +396,17 @@ const CreatePost = () => {
       </Dialog>
 
       <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         open={alertMessage.open}
         autoHideDuration={6000}
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        id="snackbar"
+        id="create-post-snackbar"
+        sx={{ width: "100%" }}
       >
-        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {alertMessage.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
           {alertMessage.message}
         </Alert>
       </Snackbar>

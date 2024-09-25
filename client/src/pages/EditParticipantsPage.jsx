@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 const EditParticipantsPage = () => {
@@ -285,8 +285,20 @@ const EditParticipantsPage = () => {
                 </Box>
             </Paper>
 
-            <Snackbar open={alertMessage.open} autoHideDuration={4000} onClose={() => setAlertMessage({ ...alertMessage, open: false })}>
-                <Alert severity={alertMessage.severity} onClose={() => setAlertMessage({ ...alertMessage, open: false })}>
+            <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                open={alertMessage.open}
+                autoHideDuration={6000}
+                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+            >
+                <Alert
+                    severity={alertMessage.severity}
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                    sx={{ width: "80%", fontSize: "1rem" }}
+                >
+                    <AlertTitle sx={{ fontSize: "1.5rem" }}>
+                        {alertMessage.severity === "error" ? "Error" : "Success"}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
