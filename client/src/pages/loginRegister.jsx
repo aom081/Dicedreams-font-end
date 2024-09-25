@@ -16,6 +16,11 @@ import {
   Snackbar,
   Alert,
   AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -50,6 +55,7 @@ function LoginPage() {
   const { login } = useContext(AuthContext);
   const isMobile = useMediaQuery("(max-width:600px)");
   const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
+  const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -162,6 +168,8 @@ function LoginPage() {
         user_image: base64Image,
       };
 
+      console.log("Data to send:", dataToSend);
+
       const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend);
 
       setAlert({ open: true, message: "ลงทะเบียนสำเร็จ!", severity: "success" });
@@ -187,16 +195,32 @@ function LoginPage() {
     } catch (error) {
       console.error("Registration error:", error);
 
-      // Checking for duplicate username or email error
-      const errorMessage =
-        error.response?.data?.message ||
-        (error.response?.data?.includes("E-mail is already in use")
-          ? "E-mail นี้ถูกใช้แล้ว"
-          : error.response?.data?.includes("Username is already taken")
-            ? "Username นี้ถูกใช้แล้ว"
-            : error.request
-              ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง"
-              : "ข้อผิดพลาด: " + error.message);
+      // Log the error response to check its structure
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+      }
+
+      let errorMessage = "ข้อผิดพลาด: กรุณาลองใหม่อีกครั้ง";
+      if (error.response) {
+        // Access the error messages correctly
+        if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+          if (error.response.data.includes("E-mail is already in use")) {
+            errorMessage = "E-mail นี้ถูกใช้แล้ว";
+          } else if (error.response.data.includes("Username is already taken")) {
+            errorMessage = "Username นี้ถูกใช้แล้ว";
+          }
+        } else if (error.response.data.error) {
+          if (error.response.data.error.includes("E-mail is already in use")) {
+            errorMessage = "E-mail นี้ถูกใช้แล้ว";
+          } else if (error.response.data.error.includes("Username is already taken")) {
+            errorMessage = "Username นี้ถูกใช้แล้ว";
+          }
+        }
+      } else if (error.request) {
+        errorMessage = "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง";
+      }
 
       setAlert({ open: true, message: errorMessage, severity: "error" });
     } finally {
@@ -206,7 +230,20 @@ function LoginPage() {
 
   const handleCancel = () => {
     console.log("Cancel button clicked");
+    if (isRegister) {
+      setOpenCancelDialog(true);
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setOpenCancelDialog(false);
     navigate("/");
+  };
+
+  const handleCloseCancelDialog = () => {
+    setOpenCancelDialog(false);
   };
 
   const handleInputChange = (event) => {
@@ -543,6 +580,30 @@ function LoginPage() {
           </Box>
         )}
       </Box>
+      
+      {/* Confirmation Dialog for Canceling Registration */}
+      <Dialog
+        open={openCancelDialog}
+        onClose={handleCloseCancelDialog}
+        aria-labelledby="cancel-dialog-title"
+        aria-describedby="cancel-dialog-description"
+      >
+        <DialogTitle id="cancel-dialog-title">ยืนยันการยกเลิก</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="cancel-dialog-description">
+            คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการลงทะเบียน? ข้อมูลที่คุณกรอกจะไม่ถูกบันทึก
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCancelDialog} color="primary">
+            ไม่
+          </Button>
+          <Button onClick={handleConfirmCancel} color="primary" autoFocus>
+            ใช่
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         open={alert.open}
@@ -552,7 +613,7 @@ function LoginPage() {
         sx={{ width: "100%" }}
       >
         <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "80%", fontSize: "1rem" }}>
-          <AlertTitle sx={{ fontSize: "1.50rem" }}> 
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
             {alert.severity === "error" ? "Error" : "Success"}
           </AlertTitle>
           {alert.message}

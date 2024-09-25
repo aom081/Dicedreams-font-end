@@ -182,13 +182,13 @@ const Chat = ({ userId, username, post_games_id }) => {
                             }}
                         >
                             <Avatar
-                                alt={msg.user.username} // Updated to access username inside user object
-                                src={msg.user.user_image} // Updated to access user_image inside user object
+                                alt={msg.user?.username || 'Anonymous'} // Add safe navigation with "?" to avoid undefined errors
+                                src={msg.user?.user_image || '/default-avatar.png'} // Provide a fallback image
                                 sx={{ marginRight: 1 }}
                             />
                             <Box>
                                 <Typography variant="subtitle2">
-                                    {msg.user.username} {/* Updated to access username inside user object */}
+                                    {msg.user?.username || 'Anonymous'} {/* Add fallback for undefined username */}
                                     <Typography variant="caption" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
                                         {msg.datetime_chat}
                                     </Typography>
