@@ -144,7 +144,7 @@ const DetailsPage = () => {
                             fullWidth
                             variant="contained"
                             color="primary"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(-1)}
                         >
                             Return to Home
                         </Button>
