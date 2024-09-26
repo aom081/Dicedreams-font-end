@@ -8,8 +8,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import crypto from "crypto-js"; // Import crypto-js for hashing
 
 const formatDateToThai = (isoDateString) => {
   const thaiDays = [
@@ -41,8 +39,7 @@ const formatDateToThai = (isoDateString) => {
 
   const day = date.getDate();
   const month = date.getMonth();
-  // const year = date.getFullYear() + 543;
-  const year = date.getFullYear() ;
+  const year = date.getFullYear() + 543;
   const weekday = thaiDays[date.getDay()];
 
   const hours = date.getHours();
@@ -54,30 +51,16 @@ const formatDateToThai = (isoDateString) => {
 
 const StoreAc = ({ data, storeImg, storeName }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedActivityId, setSelectedActivityId] = useState(null);
   const menuOpen = Boolean(anchorEl);
-  const navigate = useNavigate();
 
-  const handleMenuClick = (event, postId) => {
+  const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
-    setSelectedActivityId(postId);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const encodeId = (postId) => {
-    return btoa(postId)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-  };
-
-  const handleEditClick = () => {
-    const encodedId = encodeId(selectedActivityId); 
-    navigate(`/store/editActivity/${encodedId}`);
-  };
 
   if (!data || data.length === 0) {
     return <Typography>No activities available.</Typography>;
@@ -131,9 +114,7 @@ const StoreAc = ({ data, storeImg, storeName }) => {
               aria-controls={menuOpen ? "long-menu" : undefined}
               aria-expanded={menuOpen ? "true" : undefined}
               aria-haspopup="true"
-              onClick={(event) =>
-                handleMenuClick(event, activity.post_activity_id)
-              } // Pass post_activity_id here
+              onClick={handleMenuClick}
               sx={{ color: "white" }}
             >
               <MoreVertIcon />
@@ -153,20 +134,22 @@ const StoreAc = ({ data, storeImg, storeName }) => {
                 },
               }}
             >
-              <MenuItem
-                key="EDIT"
-                onClick={() => {
-                  handleMenuClose();
-                  handleEditClick(); // No need to pass the id, it's already in state
-                }}
-              >
-                EDIT
-              </MenuItem>
+              {["Option 1", "Option 2", "Option 3"].map((option) => (
+                <MenuItem key={option} onClick={handleMenuClose}>
+                  {option}
+                </MenuItem>
+              ))}
             </Menu>
           </Box>
         </Box>
 
-        <Box sx={{ marginLeft: 2, marginRight: 2, marginBottom: 2 }}>
+        <Box
+          sx={{
+            marginLeft: 2,
+            marginRight: 2,
+            marginBottom: 2,
+          }}
+        >
           <img
             src={activity.post_activity_image || "No img"}
             alt={activity.post_activity_image || "No img"}
@@ -174,7 +157,12 @@ const StoreAc = ({ data, storeImg, storeName }) => {
           />
         </Box>
 
-        <Box sx={{ margin: 4, paddingBottom: 3 }}>
+        <Box
+          sx={{
+            margin: 4,
+            paddingBottom: 3,
+          }}
+        >
           <Typography variant="h5">
             {activity.name_activity || "no text"}
           </Typography>

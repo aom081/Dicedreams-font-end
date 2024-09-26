@@ -53,8 +53,6 @@ const ProfileEdit = () => {
       const token = localStorage.getItem("access_token");
       const user_id = localStorage.getItem("users_id");
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
         throw new Error("No token found");
       }
 
@@ -83,7 +81,7 @@ const ProfileEdit = () => {
       );
 
       console.log("User updated successfully", response.data);
-
+      
       window.alert("User updated successfully!");
       navigate("/profile");
     } catch (error) {
@@ -139,8 +137,6 @@ const ProfileEdit = () => {
       const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
         throw new Error("No token found");
       }
 
@@ -234,8 +230,6 @@ const ProfileEdit = () => {
       const user_id = localStorage.getItem("users_id");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
         throw new Error("No token found");
       }
       const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`;
@@ -252,15 +246,6 @@ const ProfileEdit = () => {
       setUsername(response.data.username);
       setEmail(response.data.email);
       setGender(response.data.gender);
-
-
-      
-      const userBirthday = new Date(response.data.birthday);
-      const cutoffDate = new Date("1900-01-01");
-
-      if (userBirthday < cutoffDate) {
-        alert("ปีเกิดน้อยกว่าปี 1900 กรุณากรอกวันเกิดจริง");
-      }
       setBirthday(dayjs(response.data.birthday));
       console.log("User data fetched successfully", response.data);
     } catch (error) {
@@ -470,8 +455,8 @@ const ProfileEdit = () => {
               },
             }}
           >
-            <MenuItem value="ชาย">Male</MenuItem>
-            <MenuItem value="หญิง">Female</MenuItem>
+            <MenuItem value="male">Male</MenuItem>
+            <MenuItem value="female">Female</MenuItem>
             <MenuItem value="other">Other</MenuItem>
           </TextField>
         </Box>
