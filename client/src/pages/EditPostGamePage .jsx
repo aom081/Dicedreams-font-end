@@ -35,7 +35,7 @@ const EditPostGamePage = () => {
     useEffect(() => {
         const verifyUserAndLoadEvent = async () => {
             if (!userId || !accessToken || !role) {
-                alert('Please log in to access this page.');
+                alert('กรุณาเข้าสู่ระบบเพื่อเข้าสู่หน้านี้');
                 navigate('/login');
                 return;
             }
@@ -54,7 +54,7 @@ const EditPostGamePage = () => {
                 const eventData = response.data;
 
                 if (eventData.users_id !== userId) {
-                    alert('You do not have permission to edit this post.');
+                    alert('คุณไม่ได้รับอนุญาตให้แก้ไขโพสต์นี้');
                     navigate('/');
                     return;
                 }
@@ -82,7 +82,7 @@ const EditPostGamePage = () => {
                 console.error('Failed to fetch event details', error);
                 setAlertMessage({
                     open: true,
-                    message: 'Failed to fetch event details. Please try again later.',
+                    message: 'ไม่สามารถเรียกรายละเอียดกิจกรรมได้ โปรดลองอีกครั้งในภายหลัง',
                     severity: 'error',
                 });
                 navigate('/');
@@ -152,7 +152,7 @@ const EditPostGamePage = () => {
             // Show success message
             setAlertMessage({
                 open: true,
-                message: 'Event updated successfully!',
+                message: 'อัปเดตกิจกรรมสำเร็จแล้ว!',
                 severity: 'success',
             });
 
@@ -164,7 +164,7 @@ const EditPostGamePage = () => {
             console.error('Failed to update event', error);
             setAlertMessage({
                 open: true,
-                message: 'Failed to update event. Please try again later.',
+                message: 'ไม่สามารถอัปเดตกิจกรรมได้ โปรดลองอีกครั้งในภายหลัง',
                 severity: 'error',
             });
         }

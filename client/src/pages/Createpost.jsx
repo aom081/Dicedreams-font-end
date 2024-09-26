@@ -165,7 +165,7 @@ const CreatePost = () => {
       navigate('/');
     } catch (error) {
       console.error('Error:', error);
-      setAlertMessage({ open: true, message: 'Error creating post. Please try again.', severity: 'error' });
+      setAlertMessage({ open: true, message: 'เกิดข้อผิดพลาดในการสร้างโพสต์ โปรดลองอีกครั้ง', severity: 'error' });
     }
   };
 

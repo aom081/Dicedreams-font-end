@@ -37,7 +37,7 @@ const EditParticipantsPage = () => {
                 setJoinedParticipants(participants.filter(p => p.participant_status === 'approved'));
             } catch (error) {
                 console.error('Error fetching participants:', error); // Debugging: Fetch error
-                alert('Failed to load participants.');
+                alert('โหลดผู้เข้าร่วมไม่สำเร็จ');
                 navigate('/');
             }
         };
@@ -70,7 +70,7 @@ const EditParticipantsPage = () => {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
-            setAlertMessage({ open: true, message: 'Participant approved!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'ผู้เข้าร่วมได้รับการอนุมัติแล้ว!', severity: 'success' });
 
             setPendingParticipants(prev => {
                 const updatedPending = prev.filter(p => p.part_Id !== part_Id);
@@ -80,7 +80,7 @@ const EditParticipantsPage = () => {
             });
         } catch (error) {
             console.error('Failed to approve participant:', error);
-            setAlertMessage({ open: true, message: 'Failed to approve participant.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'อนุมัติผู้เข้าร่วมไม่สำเร็จ', severity: 'error' });
         }
     };
 
@@ -98,11 +98,11 @@ const EditParticipantsPage = () => {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
-            setAlertMessage({ open: true, message: 'Participant refused!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'ปฏิเสธผู้เข้าร่วม!', severity: 'success' });
             setPendingParticipants(prev => prev.filter(p => p.part_Id !== part_Id));
         } catch (error) {
             console.error('Failed to refuse participant:', error);
-            setAlertMessage({ open: true, message: 'Failed to refuse participant.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถปฏิเสธผู้เข้าร่วมได้', severity: 'error' });
         }
     };
 
@@ -120,31 +120,31 @@ const EditParticipantsPage = () => {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
 
-            setAlertMessage({ open: true, message: 'Participant removed!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'ผู้เข้าร่วมถูกลบออก!', severity: 'success' });
             setJoinedParticipants(prev => prev.filter(p => p.part_Id !== part_Id));
         } catch (error) {
             console.error('Failed to remove participant:', error);
-            setAlertMessage({ open: true, message: 'Failed to remove participant.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถลบผู้เข้าร่วมได้', severity: 'error' });
         }
     };
 
     const handleApproveAll = async () => {
         try {
             await Promise.all(pendingParticipants.map(p => handleApprove(p.part_Id, p.participant_apply_datetime, p.participant_status, p.user_id, p.post_games_id)));
-            setAlertMessage({ open: true, message: 'All participants approved!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'ผู้เข้าร่วมทั้งหมดได้รับการอนุมัติแล้ว!', severity: 'success' });
         } catch (error) {
             console.error('Failed to approve all participants:', error);
-            setAlertMessage({ open: true, message: 'Failed to approve all participants.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถอนุมัติผู้เข้าร่วมทั้งหมดได้', severity: 'error' });
         }
     };
 
     const handleRemoveAll = async () => {
         try {
             await Promise.all(joinedParticipants.map(p => handleRemove(p.part_Id, p.participant_apply_datetime, p.participant_status, p.user_id, p.post_games_id)));
-            setAlertMessage({ open: true, message: 'All participants removed!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'ผู้เข้าร่วมทั้งหมดถูกลบออก!', severity: 'success' });
         } catch (error) {
             console.error('Failed to remove all participants:', error);
-            setAlertMessage({ open: true, message: 'Failed to remove all participants.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถลบผู้เข้าร่วมทั้งหมดได้', severity: 'error' });
         }
     };
 
