@@ -58,7 +58,10 @@ const Store = () => {
       // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
       const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
+
       if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
         throw new Error("No token found");
       }
 
@@ -113,14 +116,17 @@ const Store = () => {
   };
 
   const getStore = async () => {
+    console.log("get store =>start<= ");
     try {
       const token = localStorage.getItem("access_token");
-      const userId = localStorage.getItem("users_id");
-      // const userId = "3a644c7c-1321-4ff3-bcba-e600fa5366e4"; // test
+      // const userId = localStorage.getItem("users_id");
+      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
 
       console.log("getStore userId-->", userId);
 
       if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
         throw new Error("No token found");
       }
 
@@ -164,13 +170,16 @@ const Store = () => {
   };
 
   const getStoreAc = async () => {
+    console.log("get store Activity=>start<= ");
     try {
       const token = localStorage.getItem("access_token");
-      const userId = localStorage.getItem("users_id");
-      // const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      // const userId = localSstorage.getItem("users_id");
+      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
       console.log("getStoreAc userId-->", userId);
 
       if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
         throw new Error("No token found");
       }
 
@@ -241,6 +250,8 @@ const Store = () => {
       const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
       if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
         throw new Error("No token found");
       }
 
@@ -373,7 +384,7 @@ const Store = () => {
                       <Box>
                         <Button
                         sx={{width: "100%", margin: 4 , backgroundColor:"white" , color: "red"}}
-                          onClick={() => navigate("/store/createAc")} // Use navigate function on click
+                          onClick={() => navigate("/store/createAc")} 
                         >+ add New Activity</Button>
                       </Box>
                       <Activity
