@@ -40,12 +40,14 @@ const UserPosts = ({ user }) => {
       try {
         const token = localStorage.getItem("access_token");
         if (!token) {
+          alert("กรุณาลอกอินใหม่อีกครั้ง");
+          navigate("/");
           throw new Error("No token found");
         }
 
         const response = await axios.get(
-          `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
-          // `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/${user.users_id}`, // real
+          // `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/48b0a732-b292-4cf8-bdd2-52156f177587`, // test
+          `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/user/${user.users_id}`, // real
           {
             headers: {
               Authorization: `Bearer ${token}`,
