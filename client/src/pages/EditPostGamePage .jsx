@@ -2,14 +2,14 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert,
+    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { AuthContext } from '../Auth/AuthContext';
 import { DatePicker, TimePicker, renderTimeViewClock } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';  // Ensure dayjs is imported
+import dayjs from 'dayjs';
 
 const EditPostGamePage = () => {
     const { id } = useParams();
@@ -20,8 +20,8 @@ const EditPostGamePage = () => {
         name_games: '',
         detail_post: '',
         num_people: '',
-        date_meet: dayjs(),  // Ensure this starts as a dayjs object
-        time_meet: dayjs(),  // Ensure this starts as a dayjs object
+        date_meet: dayjs(),
+        time_meet: dayjs(),
         games_image: '',
     });
 
@@ -31,6 +31,9 @@ const EditPostGamePage = () => {
     const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: 'success' });
     const fileInputRef = useRef(null);
     const isMobile = useMediaQuery('(max-width:600px)');
+
+    // State for confirmation dialog
+    const [openDialog, setOpenDialog] = useState(false);
 
     useEffect(() => {
         const verifyUserAndLoadEvent = async () => {
@@ -49,8 +52,6 @@ const EditPostGamePage = () => {
                     },
                 });
 
-                console.log('API Response:', response.data);
-
                 const eventData = response.data;
 
                 if (eventData.users_id !== userId) {
@@ -59,25 +60,15 @@ const EditPostGamePage = () => {
                     return;
                 }
 
-                // Convert date_meet and time_meet to dayjs objects if they are strings
                 const updatedEvent = {
                     ...eventData,
                     date_meet: dayjs(eventData.date_meet),
-                    time_meet: dayjs(eventData.time_meet, 'HH:mm:ss'), // Ensure the correct format when loading time
+                    time_meet: dayjs(eventData.time_meet, 'HH:mm:ss'),
                 };
-
-                console.log('Parsed Date:', updatedEvent.date_meet.format('YYYY-MM-DD'));
-                console.log('Parsed Time:', updatedEvent.time_meet.format('HH:mm'));
-                console.log('Is date_meet valid:', dayjs(eventData.date_meet).isValid());
-                console.log('Is time_meet valid:', dayjs(eventData.time_meet, 'HH:mm:ss').isValid());
 
                 setEvent(updatedEvent);
                 setPreviewImage(eventData.games_image);
                 setLoading(false);
-
-                // Log the event data after it is loaded
-                console.log('Event data loaded:', updatedEvent);
-
             } catch (error) {
                 console.error('Failed to fetch event details', error);
                 setAlertMessage({
@@ -98,17 +89,14 @@ const EditPostGamePage = () => {
             ...prevEvent,
             [name]: value,
         }));
-        console.log(`Input Change - ${name}: `, value); // Log each input change
     };
 
-    // Inside handleNumberChange
     const handleNumberChange = (e) => {
         const { value } = e.target;
         setEvent((prevEvent) => ({
             ...prevEvent,
             num_people: value > 0 ? value : 1,
         }));
-        console.log('Number of Participants: ', value); // Log the number change
     };
 
     const handleImageChange = (event) => {
@@ -130,18 +118,13 @@ const EditPostGamePage = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        // Format the date_meet to "MM/DD/YYYY" before sending
         const formattedEvent = {
             ...event,
-            date_meet: event.date_meet.format('MM/DD/YYYY'),  // Format date as "MM/DD/YYYY"
-            time_meet: event.time_meet.format('HH:mm A'),    // Ensure time is formatted correctly
+            date_meet: event.date_meet.format('MM/DD/YYYY'),
+            time_meet: event.time_meet.format('HH:mm A'),
         };
 
-        // Log the formatted event data
-        console.log('Submitting edited event data: ', formattedEvent);
-
         try {
-            // Send updated event data to the server
             await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, formattedEvent, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -149,14 +132,12 @@ const EditPostGamePage = () => {
                 },
             });
 
-            // Show success message
             setAlertMessage({
                 open: true,
                 message: 'อัปเดตกิจกรรมสำเร็จแล้ว!',
                 severity: 'success',
             });
 
-            // Redirect after a short delay to allow the Snackbar to be visible
             setTimeout(() => {
                 navigate(`/events/${id}`);
             }, 1500);
@@ -170,6 +151,19 @@ const EditPostGamePage = () => {
         }
     };
 
+    const handleCancelClick = () => {
+        setOpenDialog(true);  // Open the confirmation dialog
+    };
+
+    const handleConfirmCancel = () => {
+        setOpenDialog(false);
+        navigate(`/events/${id}`);  // Navigate back to the event page without saving
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);  // Close the confirmation dialog
+    };
+
     const handleCloseSnackbar = () => {
         setAlertMessage({ ...alertMessage, open: false });
     };
@@ -179,16 +173,15 @@ const EditPostGamePage = () => {
     }
 
     return (
-        <Container id="edit-post-game-page-container" maxWidth="md" sx={{ padding: '2rem 0', marginTop: '2rem' }}>
-            <Paper id="edit-post-game-paper" elevation={3} sx={{ padding: isMobile ? 2 : 5, marginTop: 4, backgroundColor: '#2c2c2c', color: 'white' }}>
-                <Typography id="edit-post-title" variant="h4" gutterBottom>
+        <Container maxWidth="md" sx={{ padding: '2rem 0', marginTop: '2rem' }}>
+            <Paper elevation={3} sx={{ padding: isMobile ? 2 : 5, marginTop: 4, backgroundColor: '#2c2c2c', color: 'white' }}>
+                <Typography variant="h4" gutterBottom>
                     Edit Post
                 </Typography>
-                <form id="edit-post-form" onSubmit={handleFormSubmit}>
+                <form onSubmit={handleFormSubmit}>
                     <Grid container spacing={isMobile ? 2 : 3}>
                         <Grid item xs={12}>
                             <TextField
-                                id="edit-post-game-name"
                                 fullWidth
                                 label="Game Name"
                                 name="name_games"
@@ -199,7 +192,6 @@ const EditPostGamePage = () => {
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
-                                id="edit-post-detail"
                                 fullWidth
                                 label="Details"
                                 name="detail_post"
@@ -211,16 +203,12 @@ const EditPostGamePage = () => {
                         <Grid item xs={12} md={6}>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
-                                    id="edit-post-date-picker"
                                     label="Date"
                                     value={event.date_meet}
-                                    onChange={(newValue) => {
-                                        setEvent((prevEvent) => ({
-                                            ...prevEvent,
-                                            date_meet: newValue,
-                                        }));
-                                        console.log('Date Selected: ', newValue.format('MM/DD/YYYY')); // Log date change
-                                    }}
+                                    onChange={(newValue) => setEvent((prevEvent) => ({
+                                        ...prevEvent,
+                                        date_meet: newValue,
+                                    }))}
                                     sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
                                     format="MMM-DD-YYYY"
                                     fullWidth
@@ -230,16 +218,12 @@ const EditPostGamePage = () => {
                         <Grid item xs={12} md={6}>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <TimePicker
-                                    id="edit-post-time-picker"
                                     label="Time"
-                                    value={event.time_meet} // Ensure this is a valid dayjs object
-                                    onChange={(newValue) => {
-                                        setEvent((prevEvent) => ({
-                                            ...prevEvent,
-                                            time_meet: newValue,
-                                        }));
-                                        console.log('Time Selected: ', newValue.format('HH:mm A')); // Log the selected time
-                                    }}
+                                    value={event.time_meet}
+                                    onChange={(newValue) => setEvent((prevEvent) => ({
+                                        ...prevEvent,
+                                        time_meet: newValue,
+                                    }))}
                                     viewRenderers={{
                                         hours: renderTimeViewClock,
                                         minutes: renderTimeViewClock,
@@ -256,7 +240,6 @@ const EditPostGamePage = () => {
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
-                                id="edit-post-num-people"
                                 fullWidth
                                 label="Number of Participants"
                                 type="number"
@@ -265,12 +248,10 @@ const EditPostGamePage = () => {
                                 sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
                                 InputProps={{ inputProps: { min: 1 } }}
                                 required
-                                inputProps={{ 'data-testid': 'num-people-input' }}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <Button
-                                id="edit-post-upload-button"
                                 variant="contained"
                                 component="span"
                                 startIcon={<CloudUploadIcon />}
@@ -288,7 +269,6 @@ const EditPostGamePage = () => {
                             />
                             {previewImage && (
                                 <img
-                                    id="edit-post-image-preview"
                                     src={previewImage}
                                     alt="Preview"
                                     style={{ maxWidth: '100%', marginBottom: '10px' }}
@@ -297,9 +277,8 @@ const EditPostGamePage = () => {
                         </Grid>
                     </Grid>
 
-                    <Box id="edit-post-action-buttons" sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
                         <Button
-                            id="edit-post-save-button"
                             variant="contained"
                             sx={{
                                 backgroundColor: 'yellow',
@@ -311,16 +290,14 @@ const EditPostGamePage = () => {
                             Save Changes
                         </Button>
                         <Button
-                            id="edit-post-cancel-button"
                             variant="outlined"
                             sx={{
                                 borderColor: 'white',
                                 color: 'white',
                                 backgroundColor: 'transparent',
                                 '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-                                padding: '8px 24px',
                             }}
-                            onClick={() => navigate(`/events/${id}`)}
+                            onClick={handleCancelClick}
                         >
                             Cancel
                         </Button>
@@ -328,15 +305,42 @@ const EditPostGamePage = () => {
                 </form>
             </Paper>
 
+            {/* Confirmation Dialog */}
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                aria-labelledby="cancel-dialog-title"
+                aria-describedby="cancel-dialog-description"
+            >
+                <DialogTitle id="cancel-dialog-title">Cancel Edits</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="cancel-dialog-description">
+                        คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการเปลี่ยนแปลงของคุณ การเปลี่ยนแปลงที่ไม่ได้บันทึกทั้งหมดจะสูญหาย
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="primary">
+                        แก้ไขต่อไป
+                    </Button>
+                    <Button onClick={handleConfirmCancel} color="error" autoFocus>
+                        ยกเลิกการเปลี่ยนแปลง
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* Snackbar Notification */}
             <Snackbar
-                id="edit-post-snackbar"
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                 open={alertMessage.open}
-                autoHideDuration={3000}
+                autoHideDuration={6000} // Increased duration
                 onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}  // Position set to bottom middle
+                id="edit-snackbar"
+                sx={{ width: "100%" }}
             >
-                <Alert id="edit-post-alert" onClose={handleCloseSnackbar} severity={alertMessage.severity} sx={{ width: '100%' }}>
+                <Alert onClose={handleCloseSnackbar} severity={alertMessage.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+                    <AlertTitle sx={{ fontSize: "1.5rem" }}>
+                        {alertMessage.severity === "error" ? "Error" : "Success"}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>

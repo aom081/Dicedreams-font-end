@@ -15,6 +15,12 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -49,6 +55,7 @@ function LoginPage() {
   const { login } = useContext(AuthContext);
   const isMobile = useMediaQuery("(max-width:600px)");
   const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
+  const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -61,12 +68,18 @@ function LoginPage() {
 
   const handleLogin = async () => {
     console.log("Attempting login with data:", formData);
+
+    // Check identifier field (email or username)
     if (!formData.identifier) {
       setAlert({ open: true, message: "กรอก E-mail หรือ Username ไม่ถูกต้อง", severity: "error" });
+      document.getElementById("identifier").focus(); // Move cursor to identifier field
       return;
     }
+
+    // Check password field
     if (!formData.loginPassword) {
       setAlert({ open: true, message: "กรอก Password ไม่ถูกต้อง", severity: "error" });
+      document.getElementById("loginPassword").focus(); // Move cursor to password field
       return;
     }
 
@@ -76,14 +89,14 @@ function LoginPage() {
         identifier: formData.identifier,
         password: formData.loginPassword,
       });
-      console.log("Login response:", response);
+
       const { access_token } = response.data;
       login(access_token);
       setAlert({ open: true, message: "เข้าสู่ระบบสำเร็จ!", severity: "success" });
 
       setTimeout(() => {
         navigate("/");
-      }, 1500); // Adjust the delay as needed
+      }, 1500);
     } catch (error) {
       console.error("Login error:", error);
       const errorMessage =
@@ -97,53 +110,51 @@ function LoginPage() {
 
   const handleRegister = async () => {
     console.log("Attempting registration with data:", formData);
+
+    // Array of required fields
     const requiredFields = [
-      { name: "first_name", label: "First Name" },
-      { name: "last_name", label: "Last Name" },
-      { name: "username", label: "Username" },
-      { name: "phone_number", label: "Telephone Number" },
-      { name: "email", label: "E-mail" },
-      { name: "password", label: "Password" },
-      { name: "birthday", label: "Day/month/year of birth" },
-      { name: "gender", label: "Gender" },
+      { name: "first_name", label: "First Name", id: "first_name" },
+      { name: "last_name", label: "Last Name", id: "last_name" },
+      { name: "username", label: "Username", id: "username" },
+      { name: "phone_number", label: "Telephone Number", id: "phone_number" },
+      { name: "email", label: "E-mail", id: "email" },
+      { name: "password", label: "Password", id: "password" },
+      { name: "birthday", label: "Day/month/year of birth", id: "birthday" },
+      { name: "gender", label: "Gender", id: "gender-radio-group" },
     ];
 
+    // Loop to check required fields
     for (const field of requiredFields) {
       if (!formData[field.name]) {
         console.log(`${field.label} is missing`);
         setAlert({ open: true, message: `ไม่กรอก ${field.label}`, severity: "error" });
+        document.getElementById(field.id).focus(); // Move cursor to the error field
         return;
       }
     }
 
+    // Check password length
     if (formData.password.length <= 8) {
       setAlert({ open: true, message: "รหัสผ่านต้องมีความยาวมากกว่า 8 ตัวอักษร", severity: "error" });
+      document.getElementById("password").focus(); // Move cursor to password field
       return;
     }
 
+    // Check user age
     const age = dayjs().diff(formData.birthday, "year");
     if (age < 12) {
       setAlert({ open: true, message: "คุณต้องมีอายุอย่างน้อย 12 ปีเพื่อสมัครสมาชิก", severity: "error" });
+      document.getElementById("birthday").focus(); // Move cursor to birthday field
       return;
     }
 
     setLoading(true);
+
     try {
       const formattedBirthday = dayjs(formData.birthday).format("MM/DD/YYYY");
-
-      const convertImageToBase64 = (imageFile) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(imageFile);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = (error) => reject(error);
-        });
-      };
-
       const base64Image = formData.user_image
         ? await convertImageToBase64(formData.user_image)
         : null;
-      console.log("Base64 image:", base64Image);
 
       const dataToSend = {
         first_name: formData.first_name,
@@ -156,17 +167,14 @@ function LoginPage() {
         gender: formData.gender,
         user_image: base64Image,
       };
-      console.log("Sending registration data:", dataToSend);
 
-      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("Registration response:", response);
+      console.log("Data to send:", dataToSend);
+
+      const response = await axios.post("https://dicedreams-backend-deploy-to-render.onrender.com/api/users", dataToSend);
 
       setAlert({ open: true, message: "ลงทะเบียนสำเร็จ!", severity: "success" });
 
+      // Reset form data after successful registration
       setFormData({
         first_name: "",
         last_name: "",
@@ -181,14 +189,39 @@ function LoginPage() {
         user_image: null,
         user_image_preview: null,
       });
-      setTimeout(() => setAlert({ open: false, message: "", severity: "success" }), 6000);
 
+      setTimeout(() => setAlert({ open: false, message: "", severity: "success" }), 6000);
       setIsRegister(false);
     } catch (error) {
       console.error("Registration error:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        (error.request ? "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง" : "ข้อผิดพลาด: " + error.message);
+
+      // Log the error response to check its structure
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+      }
+
+      let errorMessage = "ข้อผิดพลาด: กรุณาลองใหม่อีกครั้ง";
+      if (error.response) {
+        // Access the error messages correctly
+        if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+          if (error.response.data.includes("E-mail is already in use")) {
+            errorMessage = "E-mail นี้ถูกใช้แล้ว";
+          } else if (error.response.data.includes("Username is already taken")) {
+            errorMessage = "Username นี้ถูกใช้แล้ว";
+          }
+        } else if (error.response.data.error) {
+          if (error.response.data.error.includes("E-mail is already in use")) {
+            errorMessage = "E-mail นี้ถูกใช้แล้ว";
+          } else if (error.response.data.error.includes("Username is already taken")) {
+            errorMessage = "Username นี้ถูกใช้แล้ว";
+          }
+        }
+      } else if (error.request) {
+        errorMessage = "ไม่มีการตอบสนองจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง";
+      }
+
       setAlert({ open: true, message: errorMessage, severity: "error" });
     } finally {
       setLoading(false);
@@ -197,7 +230,20 @@ function LoginPage() {
 
   const handleCancel = () => {
     console.log("Cancel button clicked");
+    if (isRegister) {
+      setOpenCancelDialog(true);
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setOpenCancelDialog(false);
     navigate("/");
+  };
+
+  const handleCloseCancelDialog = () => {
+    setOpenCancelDialog(false);
   };
 
   const handleInputChange = (event) => {
@@ -227,6 +273,20 @@ function LoginPage() {
   const handleCloseAlert = () => {
     console.log("Closing alert");
     setAlert({ open: false, message: "", severity: "success" });
+  };
+
+  // Function to convert image to Base64
+  const convertImageToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+    });
   };
 
   return (
@@ -520,14 +580,42 @@ function LoginPage() {
           </Box>
         )}
       </Box>
+      
+      {/* Confirmation Dialog for Canceling Registration */}
+      <Dialog
+        open={openCancelDialog}
+        onClose={handleCloseCancelDialog}
+        aria-labelledby="cancel-dialog-title"
+        aria-describedby="cancel-dialog-description"
+      >
+        <DialogTitle id="cancel-dialog-title">ยืนยันการยกเลิก</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="cancel-dialog-description">
+            คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการลงทะเบียน? ข้อมูลที่คุณกรอกจะไม่ถูกบันทึก
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCancelDialog} color="primary">
+            ไม่
+          </Button>
+          <Button onClick={handleConfirmCancel} color="primary" autoFocus>
+            ใช่
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         open={alert.open}
         autoHideDuration={6000}
         onClose={handleCloseAlert}
         id="login-snackbar"
+        sx={{ width: "100%" }}
       >
-        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "100%" }}>
+        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {alert.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
           {alert.message}
         </Alert>
       </Snackbar>

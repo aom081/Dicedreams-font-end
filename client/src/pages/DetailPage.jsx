@@ -2,17 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, Box, Avatar, TextField,
-    Snackbar, Alert, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, Grid
+    Container, Paper, Typography, Button, Box, Snackbar, Alert, AlertTitle, Dialog,
+    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Avatar
 } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 import dayjs from 'dayjs';
+import Chat from '../components/Chat'; // Importing Chat component
 
 const DetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { userId, accessToken, role } = useContext(AuthContext);
+    const { userId, accessToken, role, username } = useContext(AuthContext);
 
     const [event, setEvent] = useState({
         name_games: '',
@@ -21,6 +21,10 @@ const DetailsPage = () => {
         date_meet: dayjs(),
         time_meet: dayjs(),
         games_image: '',
+        chat_id: '', // Add chat_id to initial state
+        owner_name: '',
+        owner_image: '',
+        users_id: '', // Owner's user ID
     });
 
     const [participants, setParticipants] = useState([]);
@@ -39,6 +43,7 @@ const DetailsPage = () => {
                     ...eventData,
                     date_meet: dayjs(eventData.date_meet),
                     time_meet: dayjs(eventData.time_meet, "HH:mm"),
+                    chat_id: eventData.chat_id || '', // Ensure chat_id is set
                 });
                 setParticipants(eventData.participants || []);
             } catch (error) {
@@ -55,26 +60,12 @@ const DetailsPage = () => {
             await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            setAlertMessage({ open: true, message: 'ลบโพสต์นัดเล่น สำเร็จ', severity: 'success' });
+            setAlertMessage({ open: true, message: 'Post successfully ended', severity: 'success' });
             setTimeout(() => navigate('/'), 1500);
         } catch (error) {
-            setAlertMessage({ open: true, message: 'ไม่สามารถอัปเดตสถานะโพสต์ได้', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถอัปเดตสถานะโพสต์ได้', severity: 'error' })
         }
     };
-
-    useEffect(() => {
-        if (!event.name_games) return;
-
-        const checkTimeToHidePost = () => {
-            const currentTime = dayjs();
-            const appointmentTime = dayjs(event.date_meet).set('hour', event.time_meet.hour()).set('minute', event.time_meet.minute());
-            if (currentTime.isAfter(appointmentTime)) {
-                handleEndPost();
-            }
-        };
-        const intervalId = setInterval(checkTimeToHidePost, 60000);
-        return () => clearInterval(intervalId);
-    }, [event]);
 
     const confirmEndPost = () => {
         setOpenDialog(true);
@@ -115,12 +106,7 @@ const DetailsPage = () => {
                 padding: { xs: 2, md: 5 },
                 marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
             }}>
-                <Typography
-                    id="event-name"
-                    variant="h4"
-                    gutterBottom
-                    sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}
-                >
+                <Typography id="event-name" variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}>
                     {event.name_games || 'Untitled Event'}
                 </Typography>
                 <Typography id="event-date" variant="body1" gutterBottom>
@@ -140,6 +126,7 @@ const DetailsPage = () => {
                 <Typography id="event-participant-count" variant="body1" gutterBottom>
                     Participants: {event.num_people || 1}
                 </Typography>
+
                 <Grid id="actions-grid" container spacing={2} sx={{ marginTop: 3 }}>
                     {!isOwner && (
                         <Grid item xs={12} sm={6}>
@@ -160,13 +147,51 @@ const DetailsPage = () => {
                             fullWidth
                             variant="contained"
                             color="primary"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(-1)}
                         >
                             Return to Home
                         </Button>
                     </Grid>
                 </Grid>
             </Paper>
+
+            <Paper elevation={3} sx={{
+                padding: { xs: 2, md: 5 },
+                marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
+            }}>
+                {/* Participants Display Section */}
+                <Typography id="participant-list-title" variant="h6" gutterBottom>
+                    Participants
+                </Typography>
+                <Box id="participant-images-box" sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: 2 }}>
+                    {/* Render the owner first */}
+                    <Box id="owner-image" sx={{ textAlign: 'center' }}>
+                        <Avatar
+                            id="owner-avatar"
+                            alt={event.owner_name}
+                            src={event.owner_image || '/path/to/default/avatar.png'}
+                            sx={{ width: 50, height: 50, marginBottom: 1 }}
+                        />
+                        <Typography id="owner-username" variant="body2">{event.owner_name}</Typography>
+                    </Box>
+
+                    {/* Render other participants */}
+                    {participants.map((participant, index) => (
+                        <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
+                            <Avatar
+                                id={`participant-avatar-${participant.user_id}`}
+                                alt={participant.user_name}
+                                src={participant.user_image || '/path/to/default/avatar.png'}
+                                sx={{ width: 50, height: 50, marginBottom: 1 }}
+                            />
+                            <Typography id={`participant-username-${participant.user_id}`} variant="body2">
+                                {participant.user_name}
+                            </Typography>
+                        </Box>
+                    ))}
+                </Box>
+            </Paper>
+
             {isOwner && (
                 <Paper id="manage-event-paper" elevation={3} sx={{
                     padding: { xs: 2, md: 5 },
@@ -211,34 +236,48 @@ const DetailsPage = () => {
                 </Paper>
             )}
 
-            <Snackbar
-                id="snackbar-alert"
-                open={alertMessage.open}
-                autoHideDuration={3000}
-                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-            >
-                <Alert onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                    severity={alertMessage.severity} sx={{ width: '100%' }}>
-                    {alertMessage.message}
-                </Alert>
-            </Snackbar>
+            {/* Chat Component */}
+            <Chat
+                userId={userId}
+                username={username}
+                accessToken={accessToken}
+                chatId={event.chat_id}
+            />
 
-            <Dialog
-                id="confirm-end-dialog"
-                open={openDialog}
-                onClose={() => setOpenDialog(false)}
-            >
-                <DialogTitle>{"End Post?"}</DialogTitle>
+            {/* Confirmation dialog for ending post */}
+            <Dialog open={openDialog} onClose={() => handleDialogClose(false)}>
+                <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Do you really want to end this post? This action is irreversible.
+                    <DialogContentText id="end-post-dialog-content-text">
+                        Are you sure you want to end this post?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button id="cancel-end-button" onClick={() => handleDialogClose(false)}>Cancel</Button>
-                    <Button id="confirm-end-button" onClick={() => handleDialogClose(true)} color="error">End Post</Button>
+                    <Button id="cancel-end-post-button" onClick={() => handleDialogClose(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button id="confirm-end-post-button" onClick={() => handleDialogClose(true)} color="error">
+                        End Post
+                    </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Snackbar notifications */}
+            <Snackbar
+                open={alertMessage.open}
+                autoHideDuration={3000}
+                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    id="alert-message"
+                    severity={alertMessage.severity}
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                >
+                    <AlertTitle id="alert-title">{alertMessage.severity === 'success' ? 'Success' : 'Error'}</AlertTitle>
+                    {alertMessage.message}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };

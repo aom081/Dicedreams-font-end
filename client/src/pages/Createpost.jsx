@@ -9,17 +9,23 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle'; // Import AlertTitle
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
 import { useMediaQuery, useTheme } from '@mui/material';
-import { predefinedGames } from '../constants/gameList'
-
+import { predefinedGames } from '../constants/gameList';
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -36,6 +42,7 @@ const CreatePost = () => {
   const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: '' });
   const [gameOption, setGameOption] = useState('');
   const [customGameName, setCustomGameName] = useState('');
+  const [openDialog, setOpenDialog] = useState(false); // State for dialog
   const fileInputRef = useRef(null);
 
   const theme = useTheme();
@@ -176,11 +183,20 @@ const CreatePost = () => {
   };
 
   const handleCancel = () => {
-    navigate('/');
+    setOpenDialog(true); // Open the dialog
   };
 
   const handleCloseAlert = () => {
     setAlertMessage({ open: false, message: '', severity: '' });
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Close the dialog
+  };
+
+  const handleConfirmCancel = () => {
+    setOpenDialog(false);
+    navigate('/'); // Navigate back after confirmation
   };
 
   return (
@@ -210,39 +226,18 @@ const CreatePost = () => {
             Create a board game post
           </Typography>
           <form onSubmit={handleSubmit} noValidate>
-            <Select
+            <Autocomplete
               fullWidth
               value={gameOption}
               onChange={handleGameOptionChange}
-              displayEmpty
-              sx={{ mb: 2 }}
+              options={predefinedGames}
+              freeSolo // Allow custom values not in the predefined list
+              renderInput={(params) => (
+                <TextField {...params} label="Select or enter a board game" variant="outlined" sx={{ mb: 2 }} />
+              )}
+              getOptionLabel={(option) => option}
               inputProps={{ 'data-testid': 'game-select', id: 'game-select' }}
-            >
-
-              <MenuItem value="" disabled>
-                Select a board game
-              </MenuItem>
-              {predefinedGames.map((game) => (
-                <MenuItem key={game} value={game} id={`game-option-${game.replace(/\s+/g, '-').toLowerCase()}`}>
-                  {game}
-                </MenuItem>
-              ))}
-              <MenuItem value="Other">Other</MenuItem>
-            </Select>
-
-            {gameOption === 'Other' && (
-              <TextField
-                fullWidth
-                id="custom-game-name"
-                label="Enter custom game name"
-                name="custom_game_name"
-                value={customGameName}
-                onChange={handleCustomGameNameChange}
-                sx={{ mb: 2 }}
-                inputProps={{ 'data-testid': 'custom-game-input' }}
-                required
-              />
-            )}
+            />
 
             <TextField
               fullWidth
@@ -284,17 +279,17 @@ const CreatePost = () => {
               </Stack>
             </LocalizationProvider>
 
-            <TextField
+            <Autocomplete
               fullWidth
-              id="num_people"
-              label="Number of participants"
-              type="number"
+              freeSolo
               value={numberOfPlayers}
               onChange={handleNumberChange}
-              sx={{ mb: 2 }}
-              InputProps={{ inputProps: { min: 0 } }}
-              required
-              inputProps={{ 'data-testid': 'num-people-input' }}
+              options={[1, 2, 3, 4, 5, 6, 7, 8]}
+              renderInput={(params) => (
+                <TextField {...params} label="Number of people" variant="outlined" sx={{ mb: 2 }} />
+              )}
+              getOptionLabel={(option) => option.toString()}
+              inputProps={{ 'data-testid': 'num-people-select', id: 'num-people-select' }}
             />
 
             <Button
@@ -316,10 +311,10 @@ const CreatePost = () => {
               onChange={handleImageChange}
               id="file-input"
             />
-            {previewImage && <img 
-            src={previewImage} 
-            alt="Preview" 
-            style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
+            {previewImage && <img
+              src={previewImage}
+              alt="Preview"
+              style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
 
             <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button
@@ -358,14 +353,41 @@ const CreatePost = () => {
         </CardContent>
       </Card>
 
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"ยกเลิกการสร้างโพสต์?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            คุณแน่ใจหรือไม่ว่าต้องการยกเลิก การเปลี่ยนแปลงที่ยังไม่ได้บันทึกจะสูญหายไป
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            ไม่
+          </Button>
+          <Button onClick={handleConfirmCancel} color="error" autoFocus>
+            ใช่
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         open={alertMessage.open}
         autoHideDuration={6000}
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        id="snackbar"
+        id="create-post-snackbar"
+        sx={{ width: "100%" }}
       >
-        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: "80%", fontSize: "1rem" }}>
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {alertMessage.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
           {alertMessage.message}
         </Alert>
       </Snackbar>

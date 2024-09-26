@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 const EditParticipantsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { userId, accessToken, role } = useContext(AuthContext);
-
     const [pendingParticipants, setPendingParticipants] = useState([]);
     const [joinedParticipants, setJoinedParticipants] = useState([]);
     const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: 'success' });
-
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [participantToRemove, setParticipantToRemove] = useState(null);
+    const [refuseDialogOpen, setRefuseDialogOpen] = useState(false);  // Added for refuse dialog
+    const [participantToRefuse, setParticipantToRefuse] = useState(null);  // Added to store participant to refuse
 
     useEffect(() => {
         console.log("Fetching participants for post ID:", id); // Debugging: Fetch participants
@@ -148,6 +148,36 @@ const EditParticipantsPage = () => {
         }
     };
 
+    const handleRefuseClick = (participant) => {
+        setParticipantToRefuse(participant);
+        setRefuseDialogOpen(true);
+    };
+
+    const handleRefuseConfirm = async () => {
+        if (participantToRefuse) {
+            const { part_Id, participant_apply_datetime, participant_status, user_id, post_games_id } = participantToRefuse;
+
+            const payload = {
+                participant_apply_datetime,
+                participant_status: 'refused',
+                user_id,
+                post_games_id
+            };
+
+            try {
+                await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`, {
+                    data: payload,
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+
+                setAlertMessage({ open: true, message: 'Participant refused!', severity: 'success' });
+                setPendingParticipants(prev => prev.filter(p => p.part_Id !== part_Id));
+                setRefuseDialogOpen(false);
+            } catch (error) {
+                setAlertMessage({ open: true, message: 'Failed to refuse participant.', severity: 'error' });
+            }
+        }
+    };
 
     const handleRemoveClick = (participant) => {
         setParticipantToRemove(participant);
@@ -182,33 +212,38 @@ const EditParticipantsPage = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                                     <Avatar alt={`${participant?.user?.first_name} ${participant?.user?.last_name}`}
-                                        src={participant?.user?.user_image || "https://via.placeholder.com/40"} />
+                                    src={participant?.user?.user_image || "https://via.placeholder.com/40"} />
                                     <Typography variant="body1" sx={{ marginLeft: 2 }}>
                                         {`${participant?.user?.first_name} ${participant?.user?.last_name}`}
                                     </Typography>
                                 </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                <Box>
                                     <Button
                                         variant="contained"
-                                        color="success"
-                                        onClick={() => handleApprove(participant.part_Id)}>
+                                        color="primary"
+                                        onClick={() => handleApprove(participant.part_Id, participant.participant_apply_datetime, participant.participant_status, participant.user_id, participant.post_games_id)}
+                                    >
                                         Approve
                                     </Button>
                                     <Button
-                                        variant="outlined"
+                                        variant="contained"
                                         color="error"
-                                        onClick={() => handleRefuse(participant.part_Id)}>
+                                        sx={{ marginLeft: 2 }}
+                                        onClick={() => handleRefuseClick(participant)}
+                                    >
                                         Refuse
                                     </Button>
                                 </Box>
                             </Box>
                         </Grid>
-                    )) : <Typography>No pending participants.</Typography>}
+                    )) : (
+                        <Typography>No pending participants.</Typography>
+                    )}
                 </Grid>
 
-                <Button variant="contained" color="success" sx={{ marginTop: 2 }} onClick={handleApproveAll}>
-                    Approve All
-                </Button>
+                <Box sx={{ marginTop: 2 }}>
+                    <Button variant="contained" onClick={handleApproveAll}>Approve All</Button>
+                </Box>
 
                 <Typography variant="h6" gutterBottom sx={{ marginTop: 4 }}>
                     Joined Participants
@@ -224,49 +259,83 @@ const EditParticipantsPage = () => {
                                         {`${participant?.user?.first_name} ${participant?.user?.last_name}`}
                                     </Typography>
                                 </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                <Box>
                                     <Button
-                                        variant="outlined"
+                                        variant="contained"
                                         color="error"
-                                        onClick={() => handleRemoveClick(participant)}>
+                                        onClick={() => handleRemoveClick(participant)}
+                                    >
                                         Remove
                                     </Button>
                                 </Box>
                             </Box>
                         </Grid>
-                    )) : <Typography>No joined participants.</Typography>}
+                    )) : (
+                        <Typography>No joined participants.</Typography>
+                    )}
                 </Grid>
 
-                <Button variant="contained" color="error" sx={{ marginTop: 2 }} onClick={handleRemoveAll}>
-                    Remove All
-                </Button>
+                <Box sx={{ marginTop: 2 }}>
+                    <Button variant="contained" color="error" onClick={handleRemoveAll}>Remove All</Button>
+                </Box>
                 <Box sx={{ position: 'absolute', bottom: 16, right: 16 }}>
-                    <Button variant="contained" color="primary" onClick={() => navigate(`/events/${id}`)}>
+                    <Button variant="contained" color="primary" onClick={() => navigate(`/events/${id }`)}>
                         Return to Details Page
                     </Button>
                 </Box>
             </Paper>
 
-            <Snackbar open={alertMessage.open} autoHideDuration={6000} onClose={() => setAlertMessage({ ...alertMessage, open: false })}>
-                <Alert onClose={() => setAlertMessage({ ...alertMessage, open: false })} severity={alertMessage.severity}>
+            <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                open={alertMessage.open}
+                autoHideDuration={6000}
+                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+            >
+                <Alert
+                    severity={alertMessage.severity}
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                    sx={{ width: "80%", fontSize: "1rem" }}
+                >
+                    <AlertTitle sx={{ fontSize: "1.5rem" }}>
+                        {alertMessage.severity === "error" ? "Error" : "Success"}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
 
-            <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-                <DialogTitle>Confirm Removal</DialogTitle>
+            {/* Refuse Confirmation Dialog */}
+            <Dialog
+                open={refuseDialogOpen}
+                onClose={() => setRefuseDialogOpen(false)}
+                aria-labelledby="refuse-dialog-title"
+            >
+                <DialogTitle id="refuse-dialog-title">Refuse Participant</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to remove this participant?
+                        คุณแน่ใจหรือไม่ว่าต้องการปฏิเสธผู้เข้าร่วมรายนี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleRemoveConfirm} color="primary">
-                        Confirm
-                    </Button>
+                    <Button onClick={() => setRefuseDialogOpen(false)}>ยกเลิก</Button>
+                    <Button onClick={handleRefuseConfirm} color="error">Refuse</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Remove Confirmation Dialog */}
+            <Dialog
+                open={confirmDialogOpen}
+                onClose={() => setConfirmDialogOpen(false)}
+                aria-labelledby="confirm-dialog-title"
+            >
+                <DialogTitle id="confirm-dialog-title">Remove Participant</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        คุณแน่ใจหรือไม่ว่าต้องการลบผู้เข้าร่วมรายนี้
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDialogOpen(false)}>ยกเลิก</Button>
+                    <Button onClick={handleRemoveConfirm} color="error">Remove</Button>
                 </DialogActions>
             </Dialog>
         </Container>

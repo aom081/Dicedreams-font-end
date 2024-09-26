@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FormControl, FormLabel, InputBase, Button, Box, Snackbar, Alert, Tooltip } from '@mui/material';
+import { FormControl, FormLabel, InputBase, Button, Box, Snackbar, Alert, AlertTitle } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 export default function Post() {
@@ -44,7 +44,7 @@ export default function Post() {
             textAlign: 'center',
             marginBottom: '20px',
             color: 'white',
-            backgroundColor:'black'
+            backgroundColor: 'black'
           }}
           id="post-form-label"
         >
@@ -112,8 +112,12 @@ export default function Post() {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         id="post-snackbar"
+        sx={{ width: "100%" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} id="post-alert">
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "80%", fontSize: "1rem" }} id="post-alert">
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -152,7 +152,7 @@ function EventCard(props) {
                     >
                         {username ? username[0] : 'U'}
                     </Avatar>
-                }
+                }   
                 action={
                     currentUserId === userId && (
                         <>
@@ -237,22 +237,21 @@ function EventCard(props) {
 
             {/* Confirmation Dialog for Ending Post */}
             <Dialog
+                id="end-post-dialog"
                 open={openConfirmDialog}
                 onClose={handleCancelEndPost}
                 aria-labelledby="confirm-dialog-title"
                 aria-describedby="confirm-dialog-description"
             >
-                <DialogTitle id="confirm-dialog-title">Confirm End Post</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="confirm-dialog-description">
-                        Are you sure you want to mark this post as inactive? This action cannot be undone.
+                <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
+                <DialogContent id="end-post-dialog-content">
+                    <DialogContentText id="end-post-dialog-content-text">
+                        Are you sure you want to end this post?
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCancelEndPost} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleEndPost} color="secondary">
+                <DialogActions id="end-post-dialog-actions">
+                    <Button onClick={handleCancelEndPost} id="cancel-end-post-button" color='error'>Cancel</Button>
+                    <Button onClick={handleEndPost} id="confirm-end-post-button" color="primary">
                         Confirm
                     </Button>
                 </DialogActions>
@@ -260,12 +259,21 @@ function EventCard(props) {
 
             {/* Notification Snackbar */}
             <Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}  // Changed to bottom-center
                 open={alertMessage.open}
                 autoHideDuration={6000}
                 onClose={handleCloseAlert}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                id="login-snackbar"
+                sx={{ width: '100%' }}  // Full-width Snackbar
             >
-                <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: '100%' }}>
+                <Alert
+                    onClose={handleCloseAlert}
+                    severity={alertMessage.severity}
+                    sx={{ width: '80%', fontSize: '1rem' }}  // 80% width and updated font size
+                >
+                    <AlertTitle sx={{ fontSize: '1.50rem' }}>  // AlertTitle with larger font
+                        {alertMessage.severity === 'error' ? 'Error' : 'Success'}
+                    </AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
