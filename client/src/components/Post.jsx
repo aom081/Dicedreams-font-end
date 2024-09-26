@@ -12,7 +12,7 @@ export default function Post() {
 
   const handlePostClick = () => {
     if (!accessToken) {
-      setSnackbar({ open: true, message: 'Please login or register first', severity: 'error' });
+      setSnackbar({ open: true, message: 'กรุณาเข้าสู่ระบบหรือลงทะเบียนก่อน', severity: 'error' });
       setTimeout(() => {
         navigate('/login');
       }, 2000);  // Redirect after 2 seconds

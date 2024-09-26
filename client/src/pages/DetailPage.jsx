@@ -48,7 +48,7 @@ const DetailsPage = () => {
                 setParticipants(eventData.participants || []);
             } catch (error) {
                 console.error('Failed to fetch event details:', error);
-                alert('Failed to fetch event details.');
+                alert('ไม่สามารถเรียกรายละเอียดกิจกรรมได้');
                 navigate('/');
             }
         };
@@ -63,7 +63,7 @@ const DetailsPage = () => {
             setAlertMessage({ open: true, message: 'Post successfully ended', severity: 'success' });
             setTimeout(() => navigate('/'), 1500);
         } catch (error) {
-            setAlertMessage({ open: true, message: 'Failed to end post.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถอัปเดตสถานะโพสต์ได้', severity: 'error' })
         }
     };
 
@@ -88,9 +88,9 @@ const DetailsPage = () => {
             await axios.post(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate`, participantData, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            setAlertMessage({ open: true, message: 'Successfully joined the event!', severity: 'success' });
+            setAlertMessage({ open: true, message: 'เข้าร่วมงานสำเร็จ!', severity: 'success' });
         } catch (error) {
-            setAlertMessage({ open: true, message: 'Failed to join the event.', severity: 'error' });
+            setAlertMessage({ open: true, message: 'ไม่สามารถเข้าร่วมกิจกรรมได้', severity: 'error' });
         }
     };
 
