@@ -9,6 +9,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
@@ -225,38 +226,18 @@ const CreatePost = () => {
             Create a board game post
           </Typography>
           <form onSubmit={handleSubmit} noValidate>
-            <Select
+            <Autocomplete
               fullWidth
               value={gameOption}
               onChange={handleGameOptionChange}
-              displayEmpty
-              sx={{ mb: 2 }}
+              options={predefinedGames}
+              freeSolo // Allow custom values not in the predefined list
+              renderInput={(params) => (
+                <TextField {...params} label="Select or enter a board game" variant="outlined" sx={{ mb: 2 }} />
+              )}
+              getOptionLabel={(option) => option}
               inputProps={{ 'data-testid': 'game-select', id: 'game-select' }}
-            >
-              <MenuItem value="" disabled>
-                Select a board game
-              </MenuItem>
-              {predefinedGames.map((game) => (
-                <MenuItem key={game} value={game} id={`game-option-${game.replace(/\s+/g, '-').toLowerCase()}`}>
-                  {game}
-                </MenuItem>
-              ))}
-              <MenuItem value="Other">Other</MenuItem>
-            </Select>
-
-            {gameOption === 'Other' && (
-              <TextField
-                fullWidth
-                id="custom-game-name"
-                label="Enter custom game name"
-                name="custom_game_name"
-                value={customGameName}
-                onChange={handleCustomGameNameChange}
-                sx={{ mb: 2 }}
-                inputProps={{ 'data-testid': 'custom-game-input' }}
-                required
-              />
-            )}
+            />
 
             <TextField
               fullWidth
@@ -298,17 +279,17 @@ const CreatePost = () => {
               </Stack>
             </LocalizationProvider>
 
-            <TextField
+            <Autocomplete
               fullWidth
-              id="num_people"
-              label="Number of participants"
-              type="number"
+              freeSolo
               value={numberOfPlayers}
               onChange={handleNumberChange}
-              sx={{ mb: 2 }}
-              InputProps={{ inputProps: { min: 0 } }}
-              required
-              inputProps={{ 'data-testid': 'num-people-input' }}
+              options={[1, 2, 3, 4, 5, 6, 7, 8]}
+              renderInput={(params) => (
+                <TextField {...params} label="Number of people" variant="outlined" sx={{ mb: 2 }} />
+              )}
+              getOptionLabel={(option) => option.toString()}
+              inputProps={{ 'data-testid': 'num-people-select', id: 'num-people-select' }}
             />
 
             <Button
