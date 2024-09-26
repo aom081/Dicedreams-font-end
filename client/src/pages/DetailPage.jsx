@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     Container, Paper, Typography, Button, Box, Snackbar, Alert, AlertTitle, Dialog,
-    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid
+    DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Avatar
 } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 import dayjs from 'dayjs';
@@ -22,6 +22,9 @@ const DetailsPage = () => {
         time_meet: dayjs(),
         games_image: '',
         chat_id: '', // Add chat_id to initial state
+        owner_name: '',
+        owner_image: '',
+        users_id: '', // Owner's user ID
     });
 
     const [participants, setParticipants] = useState([]);
@@ -152,6 +155,43 @@ const DetailsPage = () => {
                 </Grid>
             </Paper>
 
+            <Paper elevation={3} sx={{
+                padding: { xs: 2, md: 5 },
+                marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
+            }}>
+                {/* Participants Display Section */}
+                <Typography id="participant-list-title" variant="h6" gutterBottom>
+                    Participants
+                </Typography>
+                <Box id="participant-images-box" sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: 2 }}>
+                    {/* Render the owner first */}
+                    <Box id="owner-image" sx={{ textAlign: 'center' }}>
+                        <Avatar
+                            id="owner-avatar"
+                            alt={event.owner_name}
+                            src={event.owner_image || '/path/to/default/avatar.png'}
+                            sx={{ width: 50, height: 50, marginBottom: 1 }}
+                        />
+                        <Typography id="owner-username" variant="body2">{event.owner_name}</Typography>
+                    </Box>
+
+                    {/* Render other participants */}
+                    {participants.map((participant, index) => (
+                        <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
+                            <Avatar
+                                id={`participant-avatar-${participant.user_id}`}
+                                alt={participant.user_name}
+                                src={participant.user_image || '/path/to/default/avatar.png'}
+                                sx={{ width: 50, height: 50, marginBottom: 1 }}
+                            />
+                            <Typography id={`participant-username-${participant.user_id}`} variant="body2">
+                                {participant.user_name}
+                            </Typography>
+                        </Box>
+                    ))}
+                </Box>
+            </Paper>
+
             {isOwner && (
                 <Paper id="manage-event-paper" elevation={3} sx={{
                     padding: { xs: 2, md: 5 },
@@ -200,46 +240,41 @@ const DetailsPage = () => {
             <Chat
                 userId={userId}
                 username={username}
-                chat_id={event.chat_id}
-                post_games_id={id} // Pass the post_games_id correctly
+                accessToken={accessToken}
+                chatId={event.chat_id}
             />
 
-            {/* Confirmation Dialog */}
-            <Dialog 
-            id="end-post-dialog" 
-            open={openDialog} 
-            onClose={() => handleDialogClose(false)}>
+            {/* Confirmation dialog for ending post */}
+            <Dialog open={openDialog} onClose={() => handleDialogClose(false)}>
                 <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
-                <DialogContent id="end-post-dialog-content">
+                <DialogContent>
                     <DialogContentText id="end-post-dialog-content-text">
-                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้
+                        Are you sure you want to end this post?
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions id="end-post-dialog-actions">
-                    <Button onClick={() => handleDialogClose(false)} id="cancel-end-post-button" color='primary'>ยกเลิก</Button>
-                    <Button onClick={() => handleDialogClose(true)} id="confirm-end-post-button" color="error">
-                        ยืนยัน
+                <DialogActions>
+                    <Button id="cancel-end-post-button" onClick={() => handleDialogClose(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button id="confirm-end-post-button" onClick={() => handleDialogClose(true)} color="error">
+                        End Post
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Snackbar */}
+            {/* Snackbar notifications */}
             <Snackbar
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
                 open={alertMessage.open}
-                autoHideDuration={6000}
+                autoHideDuration={3000}
                 onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                id="details-snackbar"
-                sx={{ width: "100%" }} // Adjusting width of the Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <Alert
-                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                    id="alert-message"
                     severity={alertMessage.severity}
-                    sx={{ width: "80%", fontSize: "1rem" }} // Setting width of the Alert and font size for message
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
                 >
-                    <AlertTitle sx={{ fontSize: "1.50rem" }}> {/* Alert title font size */}
-                        {alertMessage.severity === "error" ? "Error" : "Success"}
-                    </AlertTitle>
+                    <AlertTitle id="alert-title">{alertMessage.severity === 'success' ? 'Success' : 'Error'}</AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
