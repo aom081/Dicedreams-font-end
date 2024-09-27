@@ -249,12 +249,12 @@ const DetailsPage = () => {
                 <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="end-post-dialog-content-text">
-                        Are you sure you want to end this post?
+                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button id="cancel-end-post-button" onClick={() => handleDialogClose(false)} color="primary">
-                        Cancel
+                        ยกเลิก
                     </Button>
                     <Button id="confirm-end-post-button" onClick={() => handleDialogClose(true)} color="error">
                         End Post
