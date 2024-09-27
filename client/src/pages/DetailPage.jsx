@@ -60,7 +60,7 @@ const DetailsPage = () => {
             await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, { status_post: 'unActive' }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            setAlertMessage({ open: true, message: 'Post successfully ended', severity: 'success' });
+            setAlertMessage({ open: true, message: 'สิ้นสุดการโพสต์เรียบร้อยแล้ว', severity: 'success' });
             setTimeout(() => navigate('/'), 1500);
         } catch (error) {
             setAlertMessage({ open: true, message: 'ไม่สามารถอัปเดตสถานะโพสต์ได้', severity: 'error' })

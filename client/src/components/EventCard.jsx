@@ -57,7 +57,7 @@ function EventCard(props) {
 
             setAlertMessage({
                 open: true,
-                message: 'The event has been successfully marked as inactive.',
+                message: 'กิจกรรมนี้ถูกทำเครื่องหมายว่าไม่ได้ใช้งานเรียบร้อยแล้ว',
                 severity: 'success',
             });
 
@@ -70,7 +70,7 @@ function EventCard(props) {
             console.error('Failed to delete post', error);
             setAlertMessage({
                 open: true,
-                message: 'Failed to delete the post. Please try again.',
+                message: 'ลบโพสต์ไม่สำเร็จ โปรดลองอีกครั้ง',
                 severity: 'error',
             });
             setTimeout(() => {
@@ -103,7 +103,7 @@ function EventCard(props) {
                 setUsername(username);
                 setProfilePic(user_image);
             } catch (error) {
-                console.error('Failed to fetch user details', error);
+                console.error('ไม่สามารถดึงข้อมูลรายละเอียดผู้ใช้', error);
             }
         };
 
@@ -246,13 +246,13 @@ function EventCard(props) {
                 <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
                 <DialogContent id="end-post-dialog-content">
                     <DialogContentText id="end-post-dialog-content-text">
-                        Are you sure you want to end this post?
+                        คุณต้องการจบโพสต์นี้หรือไม่
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions id="end-post-dialog-actions">
-                    <Button onClick={handleCancelEndPost} id="cancel-end-post-button" color='error'>Cancel</Button>
+                    <Button onClick={handleCancelEndPost} id="cancel-end-post-button" color='error'>ยกเลิก</Button>
                     <Button onClick={handleEndPost} id="confirm-end-post-button" color="primary">
-                        Confirm
+                        ยืนยัน
                     </Button>
                 </DialogActions>
             </Dialog>

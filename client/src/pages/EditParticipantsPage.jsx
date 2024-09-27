@@ -45,18 +45,6 @@ const EditParticipantsPage = () => {
         loadParticipants();
     }, [id, userId, accessToken, role, navigate]);
 
-    const updateParticipantStatus = async (participantId, status) => {
-        try {
-            const response = await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/participate/${participantId}`, { participant_status: status }, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            if (!response.data) throw new Error('Failed to update status');
-            return response.data;
-        } catch (error) {
-            throw new Error('Failed to update status: ' + error.message);
-        }
-    };
-
     const handleApprove = async (part_Id, participant_apply_datetime, participant_status, user_id, post_games_id) => {
         const payload = {
             participant_apply_datetime,
@@ -81,28 +69,6 @@ const EditParticipantsPage = () => {
         } catch (error) {
             console.error('Failed to approve participant:', error);
             setAlertMessage({ open: true, message: 'อนุมัติผู้เข้าร่วมไม่สำเร็จ', severity: 'error' });
-        }
-    };
-
-    const handleRefuse = async (part_Id, participant_apply_datetime, participant_status, user_id, post_games_id) => {
-        const payload = {
-            participant_apply_datetime,
-            participant_status: 'refused',
-            user_id,
-            post_games_id
-        };
-
-        try {
-            const response = await axios.delete(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`, {
-                data: payload,
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-
-            setAlertMessage({ open: true, message: 'ปฏิเสธผู้เข้าร่วม!', severity: 'success' });
-            setPendingParticipants(prev => prev.filter(p => p.part_Id !== part_Id));
-        } catch (error) {
-            console.error('Failed to refuse participant:', error);
-            setAlertMessage({ open: true, message: 'ไม่สามารถปฏิเสธผู้เข้าร่วมได้', severity: 'error' });
         }
     };
 
@@ -170,11 +136,11 @@ const EditParticipantsPage = () => {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
 
-                setAlertMessage({ open: true, message: 'Participant refused!', severity: 'success' });
+                setAlertMessage({ open: true, message: 'ปฏิเสธผู้เข้าร่วม!', severity: 'success' });
                 setPendingParticipants(prev => prev.filter(p => p.part_Id !== part_Id));
                 setRefuseDialogOpen(false);
             } catch (error) {
-                setAlertMessage({ open: true, message: 'Failed to refuse participant.', severity: 'error' });
+                setAlertMessage({ open: true, message: 'ไม่สามารถปฏิเสธผู้เข้าร่วมได้', severity: 'error' });
             }
         }
     };

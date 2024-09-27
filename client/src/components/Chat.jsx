@@ -29,10 +29,10 @@ const Chat = ({ userId, username, post_games_id }) => {
                 console.log(data); // Add this line to inspect the response structure
                 setMessages(data);
             } else {
-                setErrorMessage('Failed to load messages.');
+                setErrorMessage('โหลดข้อความไม่สำเร็จ');
             }
         } catch (error) {
-            setErrorMessage('Failed to load messages.');
+            setErrorMessage('โหลดข้อความไม่สำเร็จ');
         } finally {
             setLoading(false);
         }
@@ -93,14 +93,14 @@ const Chat = ({ userId, username, post_games_id }) => {
                 } else {
                     const errorText = await response.text();
                     if (response.status === 500) {
-                        setErrorMessage('Internal Server Error. Please try again.');
+                        setErrorMessage('ข้อผิดพลาดเซิร์ฟเวอร์ภายใน โปรดลองอีกครั้ง');
                     } else {
-                        setErrorMessage(`Failed to send message: ${errorText}`);
+                        setErrorMessage(`ไม่สามารถส่งข้อความได้: ${errorText}`);
                     }
                 }
             } catch (error) {
-                console.error("Error sending message:", error);
-                setErrorMessage('Failed to send message.');
+                console.error("เกิดข้อผิดพลาดในการส่งข้อความ:", error);
+                setErrorMessage('ไม่สามารถส่งข้อความได้');
             }
         }
     };
@@ -220,7 +220,7 @@ const Chat = ({ userId, username, post_games_id }) => {
                         </Box>
                     ))
                 ) : (
-                    <Typography variant="body2">No messages yet. Start the conversation!</Typography>
+                            <Typography variant="body2">ยังไม่มีข้อความ มาเริ่มการสนทนา!</Typography>
                 )}
                 <div ref={messagesEndRef} />
             </Box>

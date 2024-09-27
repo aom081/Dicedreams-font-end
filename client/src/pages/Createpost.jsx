@@ -81,15 +81,6 @@ const CreatePost = () => {
     }
   };
 
-  const handleCustomGameNameChange = (event) => {
-    const value = event.target.value;
-    setCustomGameName(value);
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      name_games: value,
-    }));
-  };
-
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     setImageFile(file);

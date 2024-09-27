@@ -304,12 +304,12 @@ const Navbar = () => {
                 <DialogTitle id="logout-dialog-title">Logout</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="logout-dialog-description">
-                        Are you sure you want to log out?
+                        คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setDialogOpen(false)} color="primary" id="cancel-logout-button">
-                        Cancel
+                        ยกเลิก
                     </Button>
                     <Button onClick={handleLogout} color="primary" autoFocus id="confirm-logout-button">
                         Logout
