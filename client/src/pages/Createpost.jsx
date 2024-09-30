@@ -64,23 +64,6 @@ const CreatePost = () => {
     }));
   };
 
-  const handleGameOptionChange = (event) => {
-    const value = event.target.value;
-    setGameOption(value);
-
-    if (value !== 'Other') {
-      setFormValues((prevValues) => ({
-        ...prevValues,
-        name_games: value,
-      }));
-    } else {
-      setFormValues((prevValues) => ({
-        ...prevValues,
-        name_games: customGameName,
-      }));
-    }
-  };
-
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     setImageFile(file);
@@ -219,16 +202,45 @@ const CreatePost = () => {
           <form onSubmit={handleSubmit} noValidate>
             <Autocomplete
               fullWidth
-              value={gameOption}
-              onChange={handleGameOptionChange}
-              options={predefinedGames}
-              freeSolo // Allow custom values not in the predefined list
+              value={gameOption} // This ensures the selected option is displayed correctly
+              onChange={(event, newValue) => {
+                if (newValue === 'Other') {
+                  // If "Other" is selected, allow user to input a custom game name
+                  setGameOption('');
+                  setFormValues((prevValues) => ({
+                    ...prevValues,
+                    name_games: customGameName, // Set the custom game name
+                  }));
+                } else {
+                  // Otherwise, set the selected predefined game
+                  setGameOption(newValue || '');
+                  setFormValues((prevValues) => ({
+                    ...prevValues,
+                    name_games: newValue || '', // Set the selected game name
+                  }));
+                }
+              }}
+              onInputChange={(event, newInputValue) => {
+                setCustomGameName(newInputValue); // Update the custom game name input
+              }}
+              options={predefinedGames} // List of predefined games
+              freeSolo // Allows custom input
               renderInput={(params) => (
-                <TextField {...params} label="Select or enter a board game" variant="outlined" sx={{ mb: 2 }} />
+                <TextField
+                  {...params}
+                  label="Select or enter a board game"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  inputProps={{
+                    ...params.inputProps,
+                    'data-testid': 'game-select',
+                    id: 'game-select',
+                  }}
+                />
               )}
-              getOptionLabel={(option) => option}
-              inputProps={{ 'data-testid': 'game-select', id: 'game-select' }}
+              getOptionLabel={(option) => option || ''} // Ensure the label is properly displayed
             />
+
 
             <TextField
               fullWidth
@@ -273,14 +285,32 @@ const CreatePost = () => {
             <Autocomplete
               fullWidth
               freeSolo
-              value={numberOfPlayers}
-              onChange={handleNumberChange}
-              options={[1, 2, 3, 4, 5, 6, 7, 8]}
+              value={numberOfPlayers ? numberOfPlayers.toString() : ''} // Ensures the value is a string for display
+              onInputChange={(event, newInputValue) => {
+                const parsedValue = parseInt(newInputValue);
+                if (isNaN(parsedValue) || parsedValue <= 0) {
+                  setAlertMessage({ open: true, message: 'กรุณากรอกจำนวนคนที่ถูกต้อง', severity: 'error' });
+                } else {
+                  setNumberOfPlayers(parsedValue);
+                }
+              }}
+              options={[2, 3, 4, 5, 6, 7, 8].map((num) => num.toString())} // Options for predefined numbers
               renderInput={(params) => (
-                <TextField {...params} label="Number of people" variant="outlined" sx={{ mb: 2 }} />
+                <TextField
+                  {...params}
+                  label="Number of people"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  inputProps={{
+                    ...params.inputProps,
+                    'data-testid': 'num-people-select',
+                    id: 'num-people-select',
+                    inputMode: 'numeric', // Ensures only numeric input on mobile
+                    pattern: '[0-9]*', // Ensures only numeric values are accepted
+                  }}
+                />
               )}
-              getOptionLabel={(option) => option.toString()}
-              inputProps={{ 'data-testid': 'num-people-select', id: 'num-people-select' }}
+              getOptionLabel={(option) => option} // Display the value as string
             />
 
             <Button

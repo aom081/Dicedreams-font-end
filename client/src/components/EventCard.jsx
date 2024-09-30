@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Card, CardHeader, CardMedia, CardContent, CardActions, Avatar, Button, Typography, IconButton, Menu, MenuItem, Snackbar, Alert, AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,7 @@ function EventCard(props) {
         severity: 'success',
     });
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [isApprovedParticipant, setIsApprovedParticipant] = useState(false);
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -45,8 +46,6 @@ function EventCard(props) {
     const handleEndPost = async () => {
         try {
             setOpenConfirmDialog(false);
-
-            // Send a PUT request to update the status of the post
             await axios.put(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${eventId}`, {
                 status_post: 'unActive',
             }, {
@@ -54,18 +53,15 @@ function EventCard(props) {
                     Authorization: `Bearer ${accessToken}`,
                 },
             });
-
             setAlertMessage({
                 open: true,
                 message: 'กิจกรรมนี้ถูกทำเครื่องหมายว่าไม่ได้ใช้งานเรียบร้อยแล้ว',
                 severity: 'success',
             });
-
-            // Optionally, refresh the page or redirect to the home page after a short delay
             setTimeout(() => {
                 setAlertMessage({ open: false, message: '', severity: 'success' });
-                navigate('/'); // Redirect or refresh the page
-            }, 500); // 0.5 seconds delay before redirecting
+                navigate('/');
+            }, 500);
         } catch (error) {
             console.error('Failed to delete post', error);
             setAlertMessage({
@@ -107,10 +103,28 @@ function EventCard(props) {
             }
         };
 
+        const checkParticipationStatus = async () => {
+            try {
+                const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/post/${eventId}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                const participants = response.data;
+                const isApproved = participants.some((participant) =>
+                    participant.userId === currentUserId && participant.status === 'approved'
+                );
+                setIsApprovedParticipant(isApproved);
+            } catch (error) {
+                console.error('Error fetching participants', error);
+            }
+        };
+
         if (userId) {
             fetchUserDetails(userId);
+            checkParticipationStatus();
         }
-    }, [userId, accessToken]);
+    }, [userId, eventId, accessToken, currentUserId]);
 
     const formattedDateMeet = dateMeet ? dayjs(dateMeet).format('MMM DD YYYY') : 'Unknown Date';
     const formattedTimeMeet = timeMeet ? dayjs(timeMeet, 'HH:mm:ss').format('h:mm A') : 'Unknown Time';
@@ -152,7 +166,7 @@ function EventCard(props) {
                     >
                         {username ? username[0] : 'U'}
                     </Avatar>
-                }   
+                }
                 action={
                     currentUserId === userId && (
                         <>
@@ -203,80 +217,105 @@ function EventCard(props) {
                 </Typography>
             </CardContent>
             <CardActions disableSpacing sx={{ justifyContent: 'space-between', padding: '16px' }}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{
-                        backgroundColor: 'crimson',
-                        color: 'white',
-                        padding: '12px 24px',
-                        fontSize: '1rem',
-                        width: '120px'
-                    }}
-                    onClick={handleJoinClick}
-                    id={`join-button-${eventId}`}
-                >
-                    Join
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="secondary"
-                    sx={{
-                        borderColor: 'white',
-                        color: 'white',
-                        padding: '12px 24px',
-                        fontSize: '1rem',
-                        width: '120px'
-                    }}
-                    onClick={handleChatClick}
-                    id={`chat-button-${eventId}`}
-                >
-                    Chat
-                </Button>
+                {(isApprovedParticipant || currentUserId === userId) ? (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{
+                                backgroundColor: 'crimson',
+                                color: 'white',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                width: '120px'
+                            }}
+                            onClick={handleChatClick}
+                            id={`chat-button-${eventId}`}
+                        >
+                            Chat
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            sx={{
+                                borderColor: 'white',
+                                color: 'white',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                width: '120px'
+                            }}
+                            onClick={handleJoinClick}
+                            id={`view-button-${eventId}`}
+                        >
+                            View
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{
+                                backgroundColor: 'crimson',
+                                color: 'white',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                width: '120px'
+                            }}
+                            onClick={handleJoinClick}
+                            id={`join-button-${eventId}`}
+                        >
+                            Join
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            sx={{
+                                borderColor: 'white',
+                                color: 'white',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                width: '120px'
+                            }}
+                            onClick={handleJoinClick}
+                            id={`view-button-${eventId}`}
+                        >
+                            View
+                        </Button>
+                    </>
+                )}
             </CardActions>
-
-            {/* Confirmation Dialog for Ending Post */}
-            <Dialog
-                id="end-post-dialog"
-                open={openConfirmDialog}
-                onClose={handleCancelEndPost}
-                aria-labelledby="confirm-dialog-title"
-                aria-describedby="confirm-dialog-description"
-            >
-                <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
-                <DialogContent id="end-post-dialog-content">
-                    <DialogContentText id="end-post-dialog-content-text">
-                        คุณต้องการจบโพสต์นี้หรือไม่
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions id="end-post-dialog-actions">
-                    <Button onClick={handleCancelEndPost} id="cancel-end-post-button" color='error'>ยกเลิก</Button>
-                    <Button onClick={handleEndPost} id="confirm-end-post-button" color="primary">
-                        ยืนยัน
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Notification Snackbar */}
             <Snackbar
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}  // Changed to bottom-center
                 open={alertMessage.open}
                 autoHideDuration={6000}
                 onClose={handleCloseAlert}
-                id="login-snackbar"
-                sx={{ width: '100%' }}  // Full-width Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert
-                    onClose={handleCloseAlert}
-                    severity={alertMessage.severity}
-                    sx={{ width: '80%', fontSize: '1rem' }}  // 80% width and updated font size
-                >
-                    <AlertTitle sx={{ fontSize: '1.50rem' }}>  // AlertTitle with larger font
-                        {alertMessage.severity === 'error' ? 'Error' : 'Success'}
-                    </AlertTitle>
+                <Alert severity={alertMessage.severity} onClose={handleCloseAlert}>
+                    <AlertTitle>{alertMessage.severity === 'success' ? 'Success' : 'Error'}</AlertTitle>
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
+            <Dialog
+                open={openConfirmDialog}
+                onClose={handleCancelEndPost}
+                aria-labelledby={`confirm-end-dialog-${eventId}`}
+            >
+                <DialogTitle id={`confirm-end-dialog-title-${eventId}`}>Confirm End Post</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to mark this post as ended? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelEndPost} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleEndPost} color="secondary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Card>
     );
 }
@@ -285,7 +324,7 @@ EventCard.propTypes = {
     userId: PropTypes.string.isRequired,
     postTime: PropTypes.string,
     image: PropTypes.string,
-    nameGames: PropTypes.string.isRequired,
+    nameGames: PropTypes.string,
     dateMeet: PropTypes.string,
     timeMeet: PropTypes.string,
     detailPost: PropTypes.string,

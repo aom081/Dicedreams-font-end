@@ -4,35 +4,56 @@ import { useNavigate } from "react-router-dom";
 
 const NotificationPage = () => {
     const [notifications, setNotifications] = useState([]);
-    const [requests, setRequests] = useState([]); // Add state for requests
+    const [requests, setRequests] = useState([]); // State for requests
     const [activeTab, setActiveTab] = useState('notification'); // State for active tab
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
+    const fetchUserDetails = async (user_id) => {
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            if (!accessToken) throw new Error("Access token not found");
+
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`, // Adjust API endpoint if necessary
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+
+            if (!response.ok) throw new Error("Error fetching user details");
+
+            const userData = await response.json();
+            return userData.username; // Assuming the API returns a `username`
+        } catch (error) {
+            console.error(`Error fetching user details for user_id ${user_id}:`, error);
+            return "Unknown User"; // Fallback if there's an error
+        }
     };
 
-    // Function to handle navigation to PostGameDetail or Chat
-    const handleButtonClick = async (event, notification) => {
-        event.preventDefault();
-        const accessToken = localStorage.getItem("access_token");
+    const fetchGameDetails = async (post_games_id) => {
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            if (!accessToken) throw new Error("Access token not found");
 
-        if (!accessToken) {
-            // Navigate to sign-in if no access token
-            navigate("/signin");
-            return;
-        }
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${post_games_id}`, // Adjust API endpoint if necessary
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
 
-        // Mark as read before navigating
-        if (!notification.read) {
-            await handleMarkAsRead(notification.notification_id);
-        }
+            if (!response.ok) throw new Error("Error fetching game details");
 
-        if (notification.type === "participate") {
-            navigate(`/PostGameDetail?id=${notification.data.post_games_id}`);
-        } else if (notification.type === "chat") {
-            navigate(`/PostGameDetail?id=${notification.data.post_games_id}#chat`);
+            const gameData = await response.json();
+            return gameData.name_games; // Assuming the API returns a `name_games`
+        } catch (error) {
+            console.error(`Error fetching game details for post_games_id ${post_games_id}:`, error);
+            return "Unknown Game"; // Fallback if there's an error
         }
     };
 
@@ -45,6 +66,7 @@ const NotificationPage = () => {
         }
 
         try {
+            console.log('Fetching notifications from API...');
             const response = await fetch(
                 "https://dicedreams-backend-deploy-to-render.onrender.com/api/notification/user",
                 {
@@ -53,14 +75,31 @@ const NotificationPage = () => {
                     },
                 }
             );
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             const data = await response.json();
+            console.log('Raw notification data:', data); // Log raw data for debugging
+
             if (data.messages && Array.isArray(data.messages)) {
-                setNotifications(
-                    data.messages.sort((a, b) => new Date(b.time) - new Date(a.time))
+                const sortedNotifications = data.messages.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                const notificationsWithDetails = await Promise.all(
+                    sortedNotifications.map(async (notification) => {
+                        const username = await fetchUserDetails(notification.data.user_id);
+                        const name_games = await fetchGameDetails(notification.data.post_games_id);
+                        return { ...notification, username, name_games };
+                    })
                 );
+
+                // Separate requests and notifications
+                const filteredRequests = notificationsWithDetails.filter((notification) => notification.type === 'participate');
+                const filteredNotifications = notificationsWithDetails.filter((notification) => notification.type !== 'participate');
+
+                setRequests(filteredRequests); // Set requests
+                setNotifications(filteredNotifications); // Set non-request notifications
             } else {
                 console.error("Invalid data format:", data);
                 setError("Invalid data format");
@@ -78,6 +117,7 @@ const NotificationPage = () => {
     }, []);
 
     const handleMarkAllAsRead = async () => {
+        console.log('Marking all notifications as read...');
         try {
             const accessToken = localStorage.getItem("access_token");
             if (!accessToken) {
@@ -103,6 +143,7 @@ const NotificationPage = () => {
                     read: true,
                 }))
             );
+            console.log('All notifications marked as read');
         } catch (error) {
             console.error("Error marking all notifications as read:", error);
             setError("Error marking all notifications as read");
@@ -110,6 +151,7 @@ const NotificationPage = () => {
     };
 
     const handleMarkAsRead = async (id) => {
+        console.log(`Marking notification ${id} as read`);
         try {
             const accessToken = localStorage.getItem("access_token");
             if (!accessToken) {
@@ -141,11 +183,93 @@ const NotificationPage = () => {
                         : notification
                 )
             );
+            console.log(`Notification ${id} marked as read`);
         } catch (error) {
-            console.error("Error marking notification as read:", error);
+            console.error(`Error marking notification ${id} as read:`, error);
             setError("Error marking notification as read");
         }
     };
+    // Function to approve participation
+    const handleApprove = async (part_Id) => {
+        console.log(`Approving participant ${part_Id}`);
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            if (!accessToken) {
+                console.error("Access token not found");
+                setError("Access token not found");
+                return;
+            }
+
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({ status: "approved" }), // Payload for approval
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            console.log(`Participant ${part_Id} approved`);
+            // Optionally update UI to reflect the approval
+            setRequests((prevRequests) =>
+                prevRequests.filter((request) => request.notification_id !== part_Id)
+            );
+        } catch (error) {
+            console.error(`Error approving participant ${part_Id}:`, error);
+            setError("Error approving participant");
+        }
+    };
+
+    // Function to refuse participation
+    const handleRefuse = async (part_Id) => {
+        console.log(`Refusing participant ${part_Id}`);
+        try {
+            const accessToken = localStorage.getItem("access_token");
+            if (!accessToken) {
+                console.error("Access token not found");
+                setError("Access token not found");
+                return;
+            }
+
+            const response = await fetch(
+                `https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/${part_Id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({ status: "refused" }), // Payload for refusal
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            console.log(`Participant ${part_Id} refused`);
+            // Optionally update UI to reflect the refusal
+            setRequests((prevRequests) =>
+                prevRequests.filter((request) => request.notification_id !== part_Id)
+            );
+        } catch (error) {
+            console.error(`Error refusing participant ${part_Id}:`, error);
+            setError("Error refusing participant");
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications(); // Initial fetch
+        const intervalId = setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
+        return () => clearInterval(intervalId); // Cleanup on component unmount
+    }, []);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 12, minHeight: '80vh' }}>
@@ -161,8 +285,8 @@ const NotificationPage = () => {
                 }}
             >
                 <ButtonGroup variant="text" color="primary" sx={{ marginBottom: 2 }}>
-                    <Button onClick={() => handleTabChange('request')} sx={{ color: activeTab === 'request' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Request</Button>
-                    <Button onClick={() => handleTabChange('notification')} sx={{ color: activeTab === 'notification' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Notification</Button>
+                    <Button onClick={() => setActiveTab('request')} sx={{ color: activeTab === 'request' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Request</Button>
+                    <Button onClick={() => setActiveTab('notification')} sx={{ color: activeTab === 'notification' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Notification</Button>
                 </ButtonGroup>
 
                 {activeTab === 'notification' ? (
@@ -171,7 +295,7 @@ const NotificationPage = () => {
                             notifications.map((notification, index) => (
                                 <Box key={index} sx={{ marginBottom: 2 }}>
                                     <Typography variant="body1" sx={{ textDecoration: notification.read ? 'line-through' : 'none' }}>
-                                        {`Notification ID: ${notification.notification_id} - Type: ${notification.type} - Time: ${new Date(notification.time).toLocaleString()}`}
+                                        {`Notification ID: ${notification.notification_id} - Type: ${notification.type} - Time: ${new Date(notification.time).toLocaleString()} - Game: ${notification.name_games} - User: ${notification.username}`}
                                     </Typography>
                                     {!notification.read && (
                                         <Button variant="contained" color="primary" size="small" onClick={() => handleMarkAsRead(notification.notification_id)}>
@@ -193,27 +317,27 @@ const NotificationPage = () => {
                         )}
                     </Box>
                 ) : (
-                    <TableContainer component={Paper} sx={{ backgroundColor: 'black', color: 'white' }}>
+                    <TableContainer component={Paper} sx={{ backgroundColor: 'black' }}>
                         {requests.length > 0 ? (
                             <Table>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                                        <TableCell sx={{ color: 'white' }}>User</TableCell>
                                         <TableCell sx={{ color: 'white' }}>Game</TableCell>
-                                        <TableCell sx={{ color: 'white' }} align="center">Confirm</TableCell>
-                                        <TableCell sx={{ color: 'white' }} align="center">Delete</TableCell>
+                                        <TableCell sx={{ color: 'white', textAlign: 'center' }}>Approve</TableCell>
+                                        <TableCell sx={{ color: 'white', textAlign: 'center' }}>Refuse</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {requests.map((request, index) => (
                                         <TableRow key={index}>
-                                            <TableCell sx={{ color: 'white' }}>{request.name}</TableCell>
-                                            <TableCell sx={{ color: 'white' }}>{request.game}</TableCell>
+                                            <TableCell sx={{ color: 'white' }}>{request.username}</TableCell>
+                                            <TableCell sx={{ color: 'white' }}>{request.name_games}</TableCell>
                                             <TableCell align="center">
-                                                <Button variant="contained" color="primary" size="small">Confirm</Button>
+                                                <Button variant="contained" color="primary" size="small" onClick={() => handleApprove(request.notification_id)}>Approve</Button>
                                             </TableCell>
                                             <TableCell align="center">
-                                                <Button variant="contained" color="secondary" size="small">Delete</Button>
+                                                <Button variant="contained" color="secondary" size="small" onClick={() => handleRefuse(request.notification_id)}>Refuse</Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}

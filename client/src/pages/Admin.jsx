@@ -18,13 +18,40 @@ import {
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const CheckUsers = async () => {
+      const id = localStorage.getItem("users_id");
+      const token = localStorage.getItem("access_token");
 
+      if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
+        throw new Error("No token found");
+      }
+
+      try {
+        const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`;
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.data.role != "admin") {
+          alert("ไม่สามารถใช้งานส่วนนี้ได้");
+          navigate("/");
+        } else {
+          fetchUsers();
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
     const fetchUsers = async () => {
       try {
         const response = await fetch(
@@ -32,16 +59,50 @@ const Admin = () => {
         );
         const data = await response.json();
         setUsers(data);
+        console.log(data);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
 
-    fetchUsers();
+    CheckUsers();
   }, []);
 
   const handleHomeClick = () => {
     navigate("/Home");
+  };
+
+  const deluser = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      alert("กรุณาลอกอินใหม่อีกครั้ง");
+      navigate("/");
+      throw new Error("No token found");
+    }
+
+    try {
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`;
+      const response = await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(response.data);
+      alert("User deleted successfully");
+      // fetchUsers();
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting user:", error.response.data.error);
+    }
   };
 
   return (
@@ -57,22 +118,17 @@ const Admin = () => {
         </Toolbar>
       </AppBar>
 
-
-
-
-
-
       <Box sx={{ padding: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h3">User list</Typography>
           <Button variant="contained">Next</Button>
         </Box>
-
-
-
-
-
-
 
         <TableContainer component={Paper} sx={{ marginTop: 3 }}>
           <Table>
@@ -105,10 +161,13 @@ const Admin = () => {
                   <TableCell>{user.phone_number}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Button variant="outlined" color="primary">
-                      Edit
-                    </Button>
-                    <Button variant="outlined" color="secondary" sx={{ marginLeft: 1 }}>
+                    {/* Use an arrow function to call deluser */}
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      sx={{ marginLeft: 1 }}
+                      onClick={() => deluser(user.users_id)}
+                    >
                       Delete
                     </Button>
                   </TableCell>

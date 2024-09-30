@@ -34,6 +34,7 @@ const DetailsPage = () => {
     useEffect(() => {
         const loadEventDetails = async () => {
             try {
+                // Fetch event details
                 const response = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/postGame/${id}`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
@@ -45,10 +46,21 @@ const DetailsPage = () => {
                     time_meet: dayjs(eventData.time_meet, "HH:mm"),
                     chat_id: eventData.chat_id || '', // Ensure chat_id is set
                 });
-                setParticipants(eventData.participants || []);
+
+                // Fetch participants separately
+                const participantsResponse = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/post/${id}`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                const participantsData = participantsResponse.data;
+
+                // Log participants data to console
+                console.log("Participants Data:", participantsData);
+
+                setParticipants(participantsData || []);
+
             } catch (error) {
-                console.error('Failed to fetch event details:', error);
-                alert('ไม่สามารถเรียกรายละเอียดกิจกรรมได้');
+                console.error('Failed to fetch event details or participants:', error);
+                alert('ไม่สามารถเรียกรายละเอียดกิจกรรมหรือผู้เข้าร่วมได้');
                 navigate('/');
             }
         };
@@ -89,12 +101,25 @@ const DetailsPage = () => {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
             setAlertMessage({ open: true, message: 'เข้าร่วมงานสำเร็จ!', severity: 'success' });
+
+            // Reload participants after joining
+            const participantsResponse = await axios.get(`https://dicedreams-backend-deploy-to-render.onrender.com/api/participate/post/${id}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const participantsData = participantsResponse.data;
+            setParticipants(participantsData || []);
+
         } catch (error) {
             setAlertMessage({ open: true, message: 'ไม่สามารถเข้าร่วมกิจกรรมได้', severity: 'error' });
         }
     };
 
     const isOwner = userId === event.users_id;
+
+    // Check if the user has already been approved as a participant
+    const isApprovedParticipant = participants.some(
+        (participant) => participant.user_id === userId && participant.participant_status === 'approved'
+    );
 
     if (!event.name_games) {
         return <Typography id="loading-message" variant="h6">Loading...</Typography>;
@@ -128,7 +153,7 @@ const DetailsPage = () => {
                 </Typography>
 
                 <Grid id="actions-grid" container spacing={2} sx={{ marginTop: 3 }}>
-                    {!isOwner && (
+                    {!isOwner && !isApprovedParticipant && (
                         <Grid item xs={12} sm={6}>
                             <Button
                                 id="join-event-button"
@@ -139,6 +164,13 @@ const DetailsPage = () => {
                             >
                                 Join
                             </Button>
+                        </Grid>
+                    )}
+                    {!isOwner && isApprovedParticipant && (
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="body1" color="success.main">
+                                คุณได้รับการอนุมัติให้เข้าร่วมกิจกรรมนี้แล้ว
+                            </Typography>
                         </Grid>
                     )}
                     <Grid item xs={12} sm={6}>
@@ -177,17 +209,19 @@ const DetailsPage = () => {
 
                     {/* Render other participants */}
                     {participants.map((participant, index) => (
-                        <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
-                            <Avatar
-                                id={`participant-avatar-${participant.user_id}`}
-                                alt={participant.user_name}
-                                src={participant.user_image || '/path/to/default/avatar.png'}
-                                sx={{ width: 50, height: 50, marginBottom: 1 }}
-                            />
-                            <Typography id={`participant-username-${participant.user_id}`} variant="body2">
-                                {participant.user_name}
-                            </Typography>
-                        </Box>
+                        participant.participant_status === 'approved' && (
+                            <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
+                                <Avatar
+                                    id={`participant-avatar-${participant.user_id}`}
+                                    alt={participant.user_name}
+                                    src={participant.user_image || '/path/to/default/avatar.png'}
+                                    sx={{ width: 50, height: 50, marginBottom: 1 }}
+                                />
+                                <Typography id={`participant-username-${participant.user_id}`} variant="body2">
+                                    {participant.user_name}
+                                </Typography>
+                            </Box>
+                        )
                     ))}
                 </Box>
             </Paper>
@@ -225,7 +259,7 @@ const DetailsPage = () => {
                             <Button
                                 id="end-post-button"
                                 fullWidth
-                                variant="outlined"
+                                variant="contained"
                                 color="error"
                                 onClick={confirmEndPost}
                             >
@@ -236,7 +270,7 @@ const DetailsPage = () => {
                 </Paper>
             )}
 
-            {/* Chat Component */}
+            {/* Chat component */}
             <Chat
                 userId={userId}
                 username={username}
@@ -244,40 +278,44 @@ const DetailsPage = () => {
                 chatId={event.chat_id}
             />
 
-            {/* Confirmation dialog for ending post */}
-            <Dialog open={openDialog} onClose={() => handleDialogClose(false)}>
-                <DialogTitle id="end-post-dialog-title">End Post</DialogTitle>
+            {/* Snackbar for success/error messages */}
+            <Snackbar
+                open={alertMessage.open}
+                autoHideDuration={6000}
+                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    severity={alertMessage.severity}
+                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                >
+                    <AlertTitle>{alertMessage.severity === 'success' ? 'Success' : 'Error'}</AlertTitle>
+                    {alertMessage.message}
+                </Alert>
+            </Snackbar>
+
+            {/* End Post Confirmation Dialog */}
+            <Dialog
+                open={openDialog}
+                onClose={() => handleDialogClose(false)}
+                aria-labelledby="confirm-end-dialog-title"
+                aria-describedby="confirm-end-dialog-description"
+            >
+                <DialogTitle id="confirm-end-dialog-title">Confirm End Post</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="end-post-dialog-content-text">
-                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้
+                    <DialogContentText id="confirm-end-dialog-description">
+                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้? การกระทำนี้ไม่สามารถยกเลิกได้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button id="cancel-end-post-button" onClick={() => handleDialogClose(false)} color="primary">
+                    <Button onClick={() => handleDialogClose(false)} color="primary">
                         ยกเลิก
                     </Button>
-                    <Button id="confirm-end-post-button" onClick={() => handleDialogClose(true)} color="error">
+                    <Button onClick={() => handleDialogClose(true)} color="error">
                         End Post
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {/* Snackbar notifications */}
-            <Snackbar
-                open={alertMessage.open}
-                autoHideDuration={3000}
-                onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <Alert
-                    id="alert-message"
-                    severity={alertMessage.severity}
-                    onClose={() => setAlertMessage({ ...alertMessage, open: false })}
-                >
-                    <AlertTitle id="alert-title">{alertMessage.severity === 'success' ? 'Success' : 'Error'}</AlertTitle>
-                    {alertMessage.message}
-                </Alert>
-            </Snackbar>
         </Container>
     );
 };
