@@ -187,45 +187,6 @@ const DetailsPage = () => {
                 </Grid>
             </Paper>
 
-            <Paper elevation={3} sx={{
-                padding: { xs: 2, md: 5 },
-                marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
-            }}>
-                {/* Participants Display Section */}
-                <Typography id="participant-list-title" variant="h6" gutterBottom>
-                    Participants
-                </Typography>
-                <Box id="participant-images-box" sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: 2 }}>
-                    {/* Render the owner first */}
-                    <Box id="owner-image" sx={{ textAlign: 'center' }}>
-                        <Avatar
-                            id="owner-avatar"
-                            alt={event.owner_name}
-                            src={event.owner_image || '/path/to/default/avatar.png'}
-                            sx={{ width: 50, height: 50, marginBottom: 1 }}
-                        />
-                        <Typography id="owner-username" variant="body2">{event.owner_name}</Typography>
-                    </Box>
-
-                    {/* Render other participants */}
-                    {participants.map((participant, index) => (
-                        participant.participant_status === 'approved' && (
-                            <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
-                                <Avatar
-                                    id={`participant-avatar-${participant.user_id}`}
-                                    alt={participant.user_name}
-                                    src={participant.user_image || '/path/to/default/avatar.png'}
-                                    sx={{ width: 50, height: 50, marginBottom: 1 }}
-                                />
-                                <Typography id={`participant-username-${participant.user_id}`} variant="body2">
-                                    {participant.user_name}
-                                </Typography>
-                            </Box>
-                        )
-                    ))}
-                </Box>
-            </Paper>
-
             {isOwner && (
                 <Paper id="manage-event-paper" elevation={3} sx={{
                     padding: { xs: 2, md: 5 },
@@ -269,6 +230,45 @@ const DetailsPage = () => {
                     </Grid>
                 </Paper>
             )}
+
+            <Paper elevation={3} sx={{
+                padding: { xs: 2, md: 5 },
+                marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
+            }}>
+                {/* Participants Display Section */}
+                <Typography id="participant-list-title" variant="h6" gutterBottom>
+                    Participants
+                </Typography>
+                <Box id="participant-images-box" sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: 2 }}>
+                    {/* Render the owner first */}
+                    <Box id="owner-image" sx={{ textAlign: 'center' }}>
+                        <Avatar
+                            id="owner-avatar"
+                            alt={event.owner_name}
+                            src={event.owner_image || '/path/to/default/avatar.png'}
+                            sx={{ width: 50, height: 50, marginBottom: 1 }}
+                        />
+                        <Typography id="owner-username" variant="body2">{event.owner_name}</Typography>
+                    </Box>
+
+                    {/* Render other participants */}
+                    {participants.map((participant, index) => (
+                        participant.participant_status === 'approved' && (
+                            <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
+                                <Avatar
+                                    id={`participant-avatar-${participant.user_id}`}
+                                    alt={participant.user_name}
+                                    src={participant.user_image || '/path/to/default/avatar.png'}
+                                    sx={{ width: 50, height: 50, marginBottom: 1 }}
+                                />
+                                <Typography id={`participant-username-${participant.user_id}`} variant="body2">
+                                    {participant.user_name}
+                                </Typography>
+                            </Box>
+                        )
+                    ))}
+                </Box>
+            </Paper>
 
             {/* Chat component */}
             <Chat

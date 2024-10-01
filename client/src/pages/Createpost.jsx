@@ -3,20 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import Autocomplete from '@mui/material/Autocomplete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Autocomplete from '@mui/material/Autocomplete';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle'; // Import AlertTitle
+import AlertTitle from '@mui/material/AlertTitle';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -26,6 +24,7 @@ import dayjs from 'dayjs';
 import { AuthContext } from '../Auth/AuthContext';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { predefinedGames } from '../constants/gameList';
+
 const CreatePost = () => {
   const { userId, accessToken, username, profilePic } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -195,36 +194,34 @@ const CreatePost = () => {
         }}
         id="create-post-card"
       >
-        <CardContent>
+        <CardContent id="create-post-card-content">
           <Typography variant="h4" gutterBottom id="create-post-title">
             Create a board game post
           </Typography>
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit} noValidate id="create-post-form">
             <Autocomplete
               fullWidth
-              value={gameOption} // This ensures the selected option is displayed correctly
+              value={gameOption}
               onChange={(event, newValue) => {
                 if (newValue === 'Other') {
-                  // If "Other" is selected, allow user to input a custom game name
                   setGameOption('');
                   setFormValues((prevValues) => ({
                     ...prevValues,
-                    name_games: customGameName, // Set the custom game name
+                    name_games: customGameName,
                   }));
                 } else {
-                  // Otherwise, set the selected predefined game
                   setGameOption(newValue || '');
                   setFormValues((prevValues) => ({
                     ...prevValues,
-                    name_games: newValue || '', // Set the selected game name
+                    name_games: newValue || '',
                   }));
                 }
               }}
               onInputChange={(event, newInputValue) => {
-                setCustomGameName(newInputValue); // Update the custom game name input
+                setCustomGameName(newInputValue);
               }}
-              options={predefinedGames} // List of predefined games
-              freeSolo // Allows custom input
+              options={predefinedGames}
+              freeSolo
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -238,9 +235,9 @@ const CreatePost = () => {
                   }}
                 />
               )}
-              getOptionLabel={(option) => option || ''} // Ensure the label is properly displayed
+              getOptionLabel={(option) => option || ''}
+              id="game-autocomplete"
             />
-
 
             <TextField
               fullWidth
@@ -253,6 +250,7 @@ const CreatePost = () => {
               onChange={handleInputChange}
               sx={{ mb: 2 }}
               inputProps={{ 'data-testid': 'detail-post-input', id: 'detail-post-input' }}
+              id="post-details-textfield"
             />
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -262,80 +260,70 @@ const CreatePost = () => {
                   views={['year', 'month', 'day']}
                   value={selectedDate}
                   onChange={(date) => setSelectedDate(date)}
-                  renderInput={(params) => <TextField fullWidth {...params} />}
-                  required
-                  inputProps={{ 'data-testid': 'date-picker' }}
+                  renderInput={(params) => <TextField {...params} id="date-picker" />}
+                  disablePast
+                  id="appointment-date-picker"
                 />
                 <TimePicker
-                  label="Select a time"
+                  label="Select an appointment time"
                   value={timeValue}
-                  onChange={(time) => setTimeValue(time)}
-                  renderInput={(params) => <TextField fullWidth {...params} />}
-                  required
-                  inputProps={{ 'data-testid': 'time-picker' }}
+                  onChange={(newTime) => setTimeValue(newTime)}
                   viewRenderers={{
                     hours: renderTimeViewClock,
                     minutes: renderTimeViewClock,
                     seconds: renderTimeViewClock,
                   }}
+                  renderInput={(params) => <TextField {...params} id="time-picker" />}
+                  id="appointment-time-picker"
                 />
               </Stack>
             </LocalizationProvider>
 
-            <Autocomplete
+            <TextField
               fullWidth
-              freeSolo
-              value={numberOfPlayers ? numberOfPlayers.toString() : ''} // Ensures the value is a string for display
-              onInputChange={(event, newInputValue) => {
-                const parsedValue = parseInt(newInputValue);
-                if (isNaN(parsedValue) || parsedValue <= 0) {
-                  setAlertMessage({ open: true, message: 'กรุณากรอกจำนวนคนที่ถูกต้อง', severity: 'error' });
-                } else {
-                  setNumberOfPlayers(parsedValue);
-                }
-              }}
-              options={[2, 3, 4, 5, 6, 7, 8].map((num) => num.toString())} // Options for predefined numbers
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Number of people"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                  inputProps={{
-                    ...params.inputProps,
-                    'data-testid': 'num-people-select',
-                    id: 'num-people-select',
-                    inputMode: 'numeric', // Ensures only numeric input on mobile
-                    pattern: '[0-9]*', // Ensures only numeric values are accepted
-                  }}
-                />
-              )}
-              getOptionLabel={(option) => option} // Display the value as string
+              label="Number of players"
+              variant="outlined"
+              type="number"
+              value={numberOfPlayers}
+              onChange={handleNumberChange}
+              inputProps={{ min: 0, 'data-testid': 'number-of-players-input', id: 'number-of-players-input' }}
+              sx={{ mb: 2 }}
+              id="number-of-players-textfield"
             />
 
-            <Button
-              variant="contained"
-              component="span"
-              startIcon={<CloudUploadIcon />}
-              onClick={handleUploadClick}
-              sx={{ mb: 2 }}
-              fullWidth
-              id="upload-image-button"
-            >
-              Upload Image
-            </Button>
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              id="file-input"
-            />
-            {previewImage && <img
-              src={previewImage}
-              alt="Preview"
-              style={{ maxWidth: '100%', marginBottom: '10px' }} id="image-preview" />}
+            <Box sx={{ mb: 2 }} id="image-upload-box">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: 'none' }}
+                id="image-upload-input"
+              />
+              <Button
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
+                onClick={handleUploadClick}
+                fullWidth
+                id="image-upload-button"
+              >
+                Upload Image
+              </Button>
+              {previewImage && (
+                <Box
+                  component="img"
+                  src={previewImage}
+                  alt="Preview"
+                  sx={{
+                    maxHeight: 200,
+                    maxWidth: '100%',
+                    objectFit: 'contain',
+                    mt: 2,
+                  }}
+                  id="image-preview"
+                />
+              )}
+            </Box>
 
             <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button
@@ -374,44 +362,25 @@ const CreatePost = () => {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"ยกเลิกการสร้างโพสต์?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            คุณแน่ใจหรือไม่ว่าต้องการยกเลิก การเปลี่ยนแปลงที่ยังไม่ได้บันทึกจะสูญหายไป
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
-            ไม่
-          </Button>
-          <Button onClick={handleConfirmCancel} color="error" autoFocus>
-            ใช่
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        open={alertMessage.open}
-        autoHideDuration={6000}
-        onClose={handleCloseAlert}
-        id="create-post-snackbar"
-        sx={{ width: "100%" }}
-      >
-        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} sx={{ width: "80%", fontSize: "1rem" }}>
-          <AlertTitle sx={{ fontSize: "1.50rem" }}>
-            {alertMessage.severity === "error" ? "Error" : "Success"}
-          </AlertTitle>
+      <Snackbar open={alertMessage.open} autoHideDuration={6000} onClose={handleCloseAlert} id="alert-snackbar">
+        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} id="alert-message">
+          <AlertTitle id="alert-title">{alertMessage.severity === 'error' ? 'Error' : 'Success'}</AlertTitle>
           {alertMessage.message}
         </Alert>
       </Snackbar>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} id="cancel-dialog">
+        <DialogTitle id="cancel-dialog-title">Cancel Post Creation</DialogTitle>
+        <DialogContent id="cancel-dialog-content">
+          <DialogContentText id="cancel-dialog-text">
+            Are you sure you want to cancel creating this post?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions id="cancel-dialog-actions">
+          <Button onClick={handleCloseDialog} id="cancel-dialog-back-button">Back</Button>
+          <Button onClick={handleConfirmCancel} id="cancel-dialog-confirm-button">Confirm</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
