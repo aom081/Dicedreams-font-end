@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Autocomplete from '@mui/material/Autocomplete';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
@@ -41,7 +43,7 @@ const CreatePost = () => {
   const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: '' });
   const [gameOption, setGameOption] = useState('');
   const [customGameName, setCustomGameName] = useState('');
-  const [openDialog, setOpenDialog] = useState(false); // State for dialog
+  const [openDialog, setOpenDialog] = useState(false);
   const fileInputRef = useRef(null);
 
   const theme = useTheme();
@@ -156,7 +158,7 @@ const CreatePost = () => {
   };
 
   const handleCancel = () => {
-    setOpenDialog(true); // Open the dialog
+    setOpenDialog(true);
   };
 
   const handleCloseAlert = () => {
@@ -164,12 +166,12 @@ const CreatePost = () => {
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false); // Close the dialog
+    setOpenDialog(false);
   };
 
   const handleConfirmCancel = () => {
     setOpenDialog(false);
-    navigate('/'); // Navigate back after confirmation
+    navigate('/');
   };
 
   return (
@@ -194,11 +196,11 @@ const CreatePost = () => {
         }}
         id="create-post-card"
       >
-        <CardContent id="create-post-card-content">
+        <CardContent>
           <Typography variant="h4" gutterBottom id="create-post-title">
             Create a board game post
           </Typography>
-          <form onSubmit={handleSubmit} noValidate id="create-post-form">
+          <form onSubmit={handleSubmit} noValidate>
             <Autocomplete
               fullWidth
               value={gameOption}
@@ -250,108 +252,124 @@ const CreatePost = () => {
               onChange={handleInputChange}
               sx={{ mb: 2 }}
               inputProps={{ 'data-testid': 'detail-post-input', id: 'detail-post-input' }}
-              id="post-details-textfield"
             />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs} id="localization-provider">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <Stack direction="row" spacing={2} sx={{ mb: 2 }} id="date-time-picker">
                 <DatePicker
                   label="Select an appointment date"
                   views={['year', 'month', 'day']}
                   value={selectedDate}
                   onChange={(date) => setSelectedDate(date)}
-                  renderInput={(params) => <TextField {...params} id="date-picker" />}
-                  disablePast
-                  id="appointment-date-picker"
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                  required
+                  inputProps={{ 'data-testid': 'date-picker' }}
+                  id="date-picker"
                 />
                 <TimePicker
-                  label="Select an appointment time"
+                  label="Appointment Time"
                   value={timeValue}
-                  onChange={(newTime) => setTimeValue(newTime)}
+                  onChange={(time) => setTimeValue(time)}
                   viewRenderers={{
                     hours: renderTimeViewClock,
                     minutes: renderTimeViewClock,
                     seconds: renderTimeViewClock,
                   }}
-                  renderInput={(params) => <TextField {...params} id="time-picker" />}
-                  id="appointment-time-picker"
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                  inputProps={{ 'data-testid': 'time-picker' }}
+                  id="time-picker"
                 />
               </Stack>
             </LocalizationProvider>
 
-            <TextField
+            <Autocomplete
               fullWidth
-              label="Number of players"
-              variant="outlined"
-              type="number"
-              value={numberOfPlayers}
-              onChange={handleNumberChange}
-              inputProps={{ min: 0, 'data-testid': 'number-of-players-input', id: 'number-of-players-input' }}
-              sx={{ mb: 2 }}
-              id="number-of-players-textfield"
-            />
-
-            <Box sx={{ mb: 2 }} id="image-upload-box">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-                id="image-upload-input"
-              />
-              <Button
-                variant="contained"
-                startIcon={<CloudUploadIcon />}
-                onClick={handleUploadClick}
-                fullWidth
-                id="image-upload-button"
-              >
-                Upload Image
-              </Button>
-              {previewImage && (
-                <Box
-                  component="img"
-                  src={previewImage}
-                  alt="Preview"
-                  sx={{
-                    maxHeight: 200,
-                    maxWidth: '100%',
-                    objectFit: 'contain',
-                    mt: 2,
+              freeSolo
+              value={numberOfPlayers ? numberOfPlayers.toString() : ''} // Ensures the value is a string for display
+              onInputChange={(event, newInputValue) => {
+                const parsedValue = parseInt(newInputValue);
+                if (isNaN(parsedValue) || parsedValue <= 0) {
+                  setAlertMessage({ open: true, message: 'กรุณากรอกจำนวนคนที่ถูกต้อง', severity: 'error' });
+                  setNumberOfPlayers(0); // Optionally reset the value to 0 or handle differently
+                } else {
+                  setAlertMessage({ open: false, message: '', severity: '' });
+                  setNumberOfPlayers(parsedValue);
+                }
+              }}
+              options={[2, 3, 4, 5, 6, 7, 8].map((num) => num.toString())} // Options for predefined numbers
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Number of people"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  inputProps={{
+                    ...params.inputProps,
+                    'data-testid': 'num-people-select',
+                    id: 'num-people-select',
+                    inputMode: 'numeric', // Ensures only numeric input on mobile
+                    pattern: '[0-9]*', // Ensures only numeric values are accepted
                   }}
-                  id="image-preview"
                 />
               )}
-            </Box>
+              getOptionLabel={(option) => option} // Display the value as a string
+            />
 
-            <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              component="span"
+              fullWidth
+              startIcon={<CloudUploadIcon />}
+              onClick={handleUploadClick}
+              sx={{ mb: 2 }}
+              id="upload-button"
+            >
+              Upload image
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageChange}
+              id="image-input"
+            />
+            {previewImage && (
+              <Box
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'column',
+                }}
+                id="preview-image-container"
+              >
+                <Typography variant="h6" gutterBottom>
+                  Image preview
+                </Typography>
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  style={{ width: '100%', maxWidth: '300px', marginTop: '10px' }}
+                  id="image-preview"
+                />
+              </Box>
+            )}
+
+            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
               <Button
                 type="submit"
                 variant="contained"
-                sx={{
-                  backgroundColor: 'crimson',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: '#b22222',
-                  },
-                  fullWidth: true,
-                }}
-                id="create-post-button"
+                color="primary"
+                fullWidth
+                id="submit-button"
               >
-                Create post
+                Create Post
               </Button>
               <Button
                 variant="outlined"
-                sx={{
-                  color: 'white',
-                  borderColor: 'white',
-                  backgroundColor: 'transparent',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                  fullWidth: true,
-                }}
+                fullWidth
                 onClick={handleCancel}
                 id="cancel-button"
               >
@@ -362,23 +380,36 @@ const CreatePost = () => {
         </CardContent>
       </Card>
 
-      <Snackbar open={alertMessage.open} autoHideDuration={6000} onClose={handleCloseAlert} id="alert-snackbar">
-        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} id="alert-message">
-          <AlertTitle id="alert-title">{alertMessage.severity === 'error' ? 'Error' : 'Success'}</AlertTitle>
+      <Snackbar
+        open={alertMessage.open}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        id="alert-snackbar"
+      >
+        <Alert onClose={handleCloseAlert} severity={alertMessage.severity} id="alert">
+          <AlertTitle>{alertMessage.severity === 'error' ? 'Error' : 'Success'}</AlertTitle>
           {alertMessage.message}
         </Alert>
       </Snackbar>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} id="cancel-dialog">
-        <DialogTitle id="cancel-dialog-title">Cancel Post Creation</DialogTitle>
-        <DialogContent id="cancel-dialog-content">
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        id="cancel-dialog"
+      >
+        <DialogTitle id="cancel-dialog-title">Confirm Cancel</DialogTitle>
+        <DialogContent>
           <DialogContentText id="cancel-dialog-text">
-            Are you sure you want to cancel creating this post?
+            Are you sure you want to cancel? Your changes will not be saved.
           </DialogContentText>
         </DialogContent>
-        <DialogActions id="cancel-dialog-actions">
-          <Button onClick={handleCloseDialog} id="cancel-dialog-back-button">Back</Button>
-          <Button onClick={handleConfirmCancel} id="cancel-dialog-confirm-button">Confirm</Button>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary" id="cancel-dialog-close-button">
+            No
+          </Button>
+          <Button onClick={handleConfirmCancel} color="primary" autoFocus id="cancel-dialog-confirm-button">
+            Yes
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

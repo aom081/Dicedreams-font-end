@@ -11,6 +11,14 @@ function RecipeReviewCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Scroll to top when returning from postgame creation
+  useEffect(() => {
+    if (sessionStorage.getItem('postgameCreated')) {
+      window.scrollTo(0, 0);
+      sessionStorage.removeItem('postgameCreated'); // Remove the flag after scrolling
+    }
+  }, []);
+
   // Restore scroll position on mount
   useEffect(() => {
     const scrollPosition = sessionStorage.getItem('scrollPosition');
