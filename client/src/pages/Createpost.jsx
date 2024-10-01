@@ -253,7 +253,7 @@ const CreatePost = () => {
               id="post-details-textfield"
             />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider dateAdapter={AdapterDayjs} id="localization-provider">
               <Stack direction="row" spacing={2} sx={{ mb: 2 }} id="date-time-picker">
                 <DatePicker
                   label="Select an appointment date"
