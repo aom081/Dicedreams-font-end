@@ -192,7 +192,7 @@ const DetailsPage = () => {
                     padding: { xs: 2, md: 5 },
                     marginTop: 4, backgroundColor: '#424242', color: 'white'
                 }}>
-                    <Typography id="manage-event-title" variant="h5" gutterBottom>Manage Event</Typography>
+                    <Typography id="manage-event-title" variant="h5" gutterBottom>Manage post game</Typography>
                     <Grid container spacing={2} sx={{ marginTop: 2 }}>
                         <Grid item xs={12} sm={4}>
                             <Button

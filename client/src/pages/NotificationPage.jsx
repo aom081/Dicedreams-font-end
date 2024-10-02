@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, ButtonGroup, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import {
+    Box,
+    Button,
+    ButtonGroup,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Avatar,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const NotificationPage = () => {
@@ -14,7 +27,7 @@ const NotificationPage = () => {
         try {
             if (!user_id) {
                 console.error('Error: user_id is undefined or null');
-                return "Unknown User";
+                return { first_name: "Unknown", last_name: "User", user_image: "" };
             }
 
             const accessToken = localStorage.getItem("access_token");
@@ -31,10 +44,14 @@ const NotificationPage = () => {
 
             if (!response.ok) throw new Error(`Error fetching user details: ${response.status}`);
             const userData = await response.json();
-            return userData.username;
+            return {
+                first_name: userData.first_name || "Unknown",
+                last_name: userData.last_name || "User",
+                user_image: userData.user_image || "",
+            };
         } catch (error) {
             console.error(`Error fetching user details for user_id ${user_id}:`, error);
-            return "Unknown User";
+            return { first_name: "Unknown", last_name: "User", user_image: "" };
         }
     };
 
@@ -92,18 +109,16 @@ const NotificationPage = () => {
                 const notificationsWithDetails = await Promise.all(
                     sortedNotifications.map(async (notification) => {
                         const user_id = notification.data?.user_id;
-                        if (!user_id) {
-                            return {
-                                ...notification,
-                                username: "Unknown User",
-                                name_games: await fetchGameDetails(notification.data.post_games_id || "Unknown Game"),
-                            };
-                        }
+                        const post_games_id = notification.data?.post_games_id;
 
-                        const username = await fetchUserDetails(user_id);
-                        const name_games = await fetchGameDetails(notification.data.post_games_id);
+                        const userDetails = user_id ? await fetchUserDetails(user_id) : { first_name: "Unknown", last_name: "User", user_image: "" };
+                        const name_games = await fetchGameDetails(post_games_id);
 
-                        return { ...notification, username, name_games };
+                        return {
+                            ...notification,
+                            ...userDetails,
+                            name_games,
+                        };
                     })
                 );
 
@@ -190,44 +205,41 @@ const NotificationPage = () => {
                         {notifications.length > 0 ? (
                             notifications.map((notification, index) => (
                                 <Box
-                                    id={`notification-${index}`}
-                                    key={index}
-                                    onClick={() => handleMarkAsReadAndNavigate(notification.notification_id, notification.data.post_games_id)} // Navigate on click
+                                    id={`notification-content-${index}`}
+                                    onClick={() => handleMarkAsReadAndNavigate(notification.notification_id, notification.data.post_games_id)}
                                     sx={{
                                         display: 'flex',
-                                        justifyContent: notification.read ? 'flex-end' : 'flex-start',
-                                        marginBottom: 2,
-                                        cursor: 'pointer', // Change cursor to indicate clickable
+                                        flexDirection: 'column', // Vertical stacking
+                                        gap: 2, // Gap between sections
+                                        maxWidth: '70%',
+                                        padding: 2,
+                                        borderRadius: 2,
+                                        backgroundColor: notification.read ? '#808080' : '#1976d2', // Different color for read vs unread
+                                        color: 'white',
+                                        wordWrap: 'break-word',
+                                        cursor: 'pointer',
+                                        marginBottom: 2 // Spacing between notifications
                                     }}
                                 >
-                                    <Box
-                                        id={`notification-content-${index}`}
-                                        sx={{
-                                            maxWidth: '70%',
-                                            padding: 2,
-                                            borderRadius: 2,
-                                            backgroundColor: notification.read ? '#d3d3d3' : '#1976d2', // Subtle background for read notifications
-                                            color: 'white',
-                                            textAlign: 'left',
-                                            wordWrap: 'break-word',
-                                        }}
-                                    >
-                                        <Typography
-                                            id={`notification-text-${index}`}
-                                            variant="body1"
-                                        >
-                                            {`Game: ${notification.name_games} - User: ${notification.username}`}
-                                        </Typography>
-                                        <Typography
-                                            id={`notification-time-${index}`}
-                                            variant="caption"
-                                            display="block"
-                                            sx={{ color: 'lightgray' }}
-                                        >
-                                            {`Time: ${new Date(notification.time).toLocaleString()}`}
+                                    {/* User and Game Info */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Avatar src={notification.user_image} alt={`${notification.first_name} ${notification.last_name}`} />
+                                        <Typography id={`notification-text-${index}`} variant="body1" sx={{ fontWeight: 'bold' }}>
+                                            {`Game: ${notification.name_games} - User: ${notification.first_name} ${notification.last_name}`}
                                         </Typography>
                                     </Box>
+
+                                    {/* Notification Message */}
+                                    <Typography id={`notification-message-${index}`} variant="body2" sx={{ color: 'lightgray' }}>
+                                        {`Message: ${notification.data?.message || 'No message'}`}
+                                    </Typography>
+
+                                    {/* Time Info */}
+                                    <Typography id={`notification-time-${index}`} variant="caption" display="block" sx={{ color: 'lightgray', textAlign: 'right' }}>
+                                        {`Time: ${new Date(notification.time).toLocaleString()}`}
+                                    </Typography>
                                 </Box>
+
                             ))
                         ) : (
                             <Typography id="no-notifications-text" variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
@@ -250,7 +262,12 @@ const NotificationPage = () => {
                                 <TableBody>
                                     {requests.map((request, index) => (
                                         <TableRow key={index}>
-                                            <TableCell sx={{ color: 'white' }}>{request.username}</TableCell>
+                                            <TableCell sx={{ color: 'white' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Avatar src={request.user_image} alt={`${request.first_name} ${request.last_name}`} />
+                                                    {`${request.first_name} ${request.last_name}`}
+                                                </Box>
+                                            </TableCell>
                                             <TableCell sx={{ color: 'white' }}>{request.name_games}</TableCell>
                                             <TableCell sx={{ textAlign: 'center' }}>
                                                 <Button variant="contained" color="success">Approve</Button>

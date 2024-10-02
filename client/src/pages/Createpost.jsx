@@ -357,19 +357,33 @@ const CreatePost = () => {
               </Box>
             )}
 
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 2 : 38} sx={{ mt: 2 }}>
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
-                fullWidth
-                id="submit-button"
+                sx={{
+                  backgroundColor: 'crimson',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#b22222',
+                  },
+                  fullWidth: true,
+                }}
+                id="create-post-button"
               >
-                Create Post
+                Create post
               </Button>
               <Button
                 variant="outlined"
-                fullWidth
+                sx={{
+                  color: 'white',
+                  borderColor: 'white',
+                  backgroundColor: 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  fullWidth: true,
+                }}
                 onClick={handleCancel}
                 id="cancel-button"
               >
