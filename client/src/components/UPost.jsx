@@ -19,7 +19,8 @@ const UserPosts = ({ user }) => {
   const navigate = useNavigate();
 
   const chatClick = () => {
-    navigate("/chat");
+    alert("Coming soon")
+    // navigate("/chat");
   };
 
   const [posts, setPosts] = useState([]);

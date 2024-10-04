@@ -74,7 +74,7 @@ const Admin = () => {
   }, []);
 
   const handleHomeClick = () => {
-    navigate("/Home");
+    navigate("/");
   };
 
   const deluser = async (id) => {
