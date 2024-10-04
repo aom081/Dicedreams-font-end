@@ -29,71 +29,71 @@ const router = createBrowserRouter([
         element: <Home />
       },
       {
-        path: "rules",
+        path: "/rules",
         element: <Rules />
       },
       {
-        path: "login",
+        path: "/login",
         element: <LoginPage />
       },
       {
-        path: "post",
+        path: "/post",
         element: <Post />
       },
       {
-        path: "create-post",
+        path: "/create-post",
         element: <CreatePost />
       },
       {
-        path: "notifications",
+        path: "/notifications",
         element: <NotificationPage />
       },
       {
-        path: "participation-history",
+        path: "/participation-history",
         element: <ParticipationHistory />
       },
       {
-        path: "events/:id",
+        path: "/events/:id",
         element: <EventDetailPage />
       },
       {
-        path: "edit-event/:id",
+        path: "/edit-event/:id",
         element: <EditPostGamePage />
       },
       {
-        path: "profile",
+        path: "/profile",
         element: <Profile />
       },
       {
-        path: "profile/edit",
+        path: "/profile/edit",
         element: <ProfileEdit />
       },
       {
-        path: "index",
+        path: "/index",
         element: <Index />
       },
       {
-        path: "store",
+        path: "/store",
         element: <Store />
       },
       {
-        path: "store/createAc",
+        path: "/store/createAc",
         element: <StoreAc />
       },
       {
-        path: "edit-participants/:id", // New route for managing participants
+        path: "/edit-participants/:id", // New route for managing participants
         element: <EditParticipantsPage />
       },
       {
-        path: "manage_contracts",
+        path: "/manage_contracts",
         element: <Adm />
       },
       {
-        path: "store/editActivity/:encodedId",
+        path: "/store/editActivity/:encodedId",
         element: <AcEdit />
       },
       {
-        path: "profile/user/:encodedId",
+        path: "/profile/user/:encodedId",
         element: <ProfileView />
       }
     ]
