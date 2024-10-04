@@ -37,8 +37,8 @@ const StoreAc = () => {
   const getStore = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      // const userId = localStorage.getItem("users_id");
-      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const userId = localStorage.getItem("store_id");
+      // const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
 
       console.log("getStore userId-->", userId);
 
@@ -147,8 +147,8 @@ const StoreAc = () => {
     }
 
     try {
-      // const user_id = localStorage.getItem("users_id");
-      const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
+      const user_id = localStorage.getItem("store_id");
+      // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
       const token = localStorage.getItem("access_token");
 
       if (!token) {

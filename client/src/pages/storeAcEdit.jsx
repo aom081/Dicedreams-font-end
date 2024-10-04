@@ -60,7 +60,7 @@ const EditActivity = () => {
         time_activity: response.data.time_activity || "",
         status_post: response.data.status_post,
       });
-      setImagePreview(response.data.post_activity_image); 
+      setImagePreview(response.data.post_activity_image);
       console.log("StoreAc data fetched successfully", response.data);
     } catch (error) {
       alert("Error fetching StoreAc data  " + error);
@@ -140,7 +140,7 @@ const EditActivity = () => {
 
       const updatedData = {
         ...editableData,
-        post_activity_image: base64Image,
+        ...(base64Image && { post_activity_image: base64Image }),
       };
 
       const response = await axios.put(url, updatedData, {
@@ -150,7 +150,7 @@ const EditActivity = () => {
       });
 
       alert("Changes saved successfully!");
-      navigate("/store"); 
+      navigate("/store");
     } catch (error) {
       console.error("Failed to save changes:", error);
       alert("Failed to save changes");

@@ -25,10 +25,9 @@ const Store = () => {
   const [store, setstore] = useState(null);
   const [storeAc, setstoreAc] = useState(null);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [storeID, setStoreID] = useState("");
+
   const [phone, setPhone] = useState("");
-  const [username, setUsername] = useState("");
   const [housename, setHousename] = useState("");
   const [alley, setAlley] = useState("");
   const [road, setRoad] = useState("");
@@ -36,7 +35,6 @@ const Store = () => {
   const [subDistrict, setSubDistrict] = useState("");
   const [province, setProvince] = useState("");
   const [gender, setGender] = useState("");
-  const [email, setEmail] = useState("");
 
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -46,6 +44,9 @@ const Store = () => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   const [dragging, setDragging] = useState(false);
 
+  const [storeName, setStoreName] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+
   const fileInputRef = useRef(null);
 
   const menuOpen = Boolean(anchorEl);
@@ -53,10 +54,12 @@ const Store = () => {
 
   const defaultImage = "../../public/Necrons2.jpg";
 
+  const [multipleStores, setMultipleStores] = useState([]);
+  const [showMultipleStores, setShowMultipleStores] = useState(false);
+
   const handleSave = () => {
     try {
-      // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      const user_id = localStorage.getItem("users_id");
+      const user_id = storeID;
       const token = localStorage.getItem("access_token");
 
       if (!token) {
@@ -66,14 +69,10 @@ const Store = () => {
       }
 
       const formData = {
-        id: user_id || "no_data_now",
-        first_name: firstName || "no_data_now",
-        last_name: lastName || "no_data_now",
-        username: username || "no_data_now",
-        email: email || "no_data_now",
-        gender: gender || "no_data_now",
+        store_id: user_id,
+        name_store: storeName || "no_data_now",
         phone_number: phone || "no_data_now",
-        house_name: housename || "no_data_now",
+        house_number: houseNumber || "no_data_now",
         alley: alley || "no_data_now",
         road: road || "no_data_now",
         district: district || "no_data_now",
@@ -95,19 +94,14 @@ const Store = () => {
       );
 
       console.log("File uploaded and user updated successfully", response.data);
-      console.log("Uploaded Image URL:-->", uploadedImageUrl);
-
-      // error: {
-      //   message: "ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store เท่านั้น";
-      // }
-      // message: "ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store เท่านั้น";
+      alert("File uploaded and user updated successfully  ");
 
       setTimeout(() => {
         getStore();
       }, 2000);
     } catch (error) {
-      alert("Error uploading file  " + error.response.data.error.message);
-      console.error("Error uploading file", error);
+      alert("Error uploading file  " + error);
+      console.error("Error uploading file: ", error);
     }
   };
 
@@ -115,14 +109,56 @@ const Store = () => {
     setActiveTab(0);
   };
 
+  const getStoreAll = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const userId = localStorage.getItem("users_id");
+
+      if (!token) {
+        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        navigate("/");
+        throw new Error("No token found");
+      }
+
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/store`;
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const storeData = response.data;
+      let getid = [];
+      let spare = [];
+
+      storeData.forEach((element) => {
+        if (element.users_id === userId) {
+          getid.push(element);
+        }
+      });
+
+      if (getid.length === 1) {
+        setStoreID(getid[0].store_id);
+        console.log("found data ==> ", getid);
+      } else if (getid.length > 1) {
+        console.log("data more than 2 ", getid);
+        setMultipleStores(getid);
+        setShowMultipleStores(true);
+      } else {
+        alert("รหัสไม่ตรงกับระบบ");
+        navigate("/");
+      }
+    } catch (error) {
+      alert("Error fetching store data  " + error);
+      console.error("Error fetching store data", error);
+    }
+  };
+
   const getStore = async () => {
-    console.log("get store =>start<= ");
     try {
       const token = localStorage.getItem("access_token");
       // const userId = localStorage.getItem("users_id");
-      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-
-      console.log("getStore userId-->", userId);
+      const userId = storeID;
 
       if (!token) {
         alert("กรุณาลอกอินใหม่อีกครั้ง");
@@ -131,6 +167,7 @@ const Store = () => {
       }
 
       if (!userId) {
+        alert("User ID not found");
         console.error("User ID not found");
         return;
       }
@@ -145,37 +182,34 @@ const Store = () => {
       const storeData = response.data;
       setstore(storeData);
 
-      let ori_Name = storeData.name_store.split(" ");
-
-      // Set individual state variables
-      setFirstName(ori_Name[0] || "");
-      setLastName(ori_Name.slice(1).join(" ") || "");
+      setStoreName(storeData.name_store || "");
+      setHouseNumber(storeData.house_number || "");
+      setAlley(storeData.alley || "");
+      setRoad(storeData.road || "");
+      setDistrict(storeData.district || "");
+      setSubDistrict(storeData.sub_district || "");
+      setProvince(storeData.province || "");
 
       setPhone(storeData.phone_number || "");
-      setUsername(storeData.username || "");
       setHousename(storeData.house_number || "");
       setAlley(storeData.alley || "");
       setRoad(storeData.road || "");
       setDistrict(storeData.district || "");
       setSubDistrict(storeData.sub_district || "");
       setProvince(storeData.province || "");
-      setGender(storeData.gender || "");
-      setEmail(storeData.email || "");
 
       console.log("store data fetched successfully", response.data);
     } catch (error) {
-      alert("Error fetching store data  " + error.response.data.error.message);
+      alert("Error fetching store data  " + error);
       console.error("Error fetching store data", error);
     }
   };
 
   const getStoreAc = async () => {
-    console.log("get store Activity=>start<= ");
     try {
       const token = localStorage.getItem("access_token");
       // const userId = localSstorage.getItem("users_id");
-      const userId = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      console.log("getStoreAc userId-->", userId);
+      const userId = storeID;
 
       if (!token) {
         alert("กรุณาลอกอินใหม่อีกครั้ง");
@@ -184,6 +218,7 @@ const Store = () => {
       }
 
       if (!userId) {
+        alert("User ID not found");
         console.error("User ID not found");
         return;
       }
@@ -197,7 +232,7 @@ const Store = () => {
       setstoreAc(response.data);
       console.log("StoreAc data fetched successfully", response.data);
     } catch (error) {
-      alert("Error fetching StoreAc data  " + error.response.data.error.message);
+      alert("Error fetching StoreAc data  " + error);
       console.error("Error fetching StoreAc data", error);
     }
   };
@@ -246,8 +281,7 @@ const Store = () => {
     }
 
     try {
-      // const user_id = "3594f82f-e3bf-11ee-9efc-30d0422f59c9"; // test
-      const user_id = localStorage.getItem("users_id");
+      const user_id = storeID;
       const token = localStorage.getItem("access_token");
       if (!token) {
         alert("กรุณาลอกอินใหม่อีกครั้ง");
@@ -258,13 +292,10 @@ const Store = () => {
       const base64Image = await convertImageToBase64(file);
 
       const formData = {
-        id: user_id || "no_data_now",
-        first_name: firstName || "no_data_now",
-        last_name: lastName || "no_data_now",
-        username: username || "no_data_now",
-        email: email || "no_data_now",
-        user_image: base64Image || "no_data_now",
+        store_id: user_id,
+        store_image: base64Image || "no_data_now",
       };
+
       console.log("formData-->", formData);
 
       const response = await axios.put(
@@ -287,18 +318,8 @@ const Store = () => {
       setUploadProgress(100);
       setUploadedImageUrl(response.data.user_image);
 
-      setUser((prevUser) => ({
-        ...prevUser,
-        user_image: response.data.user_image,
-      }));
-
       console.log("File uploaded and user updated successfully", response.data);
       console.log("Uploaded Image URL:-->", uploadedImageUrl);
-
-      // error: {
-      //   message: "ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store เท่านั้น";
-      // }
-      // message: "ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store เท่านั้น";
 
       setTimeout(() => {
         setUploadProgress(0);
@@ -308,9 +329,8 @@ const Store = () => {
       setUploading(false);
       setUploadProgress(0);
       setUploadError("File upload failed");
-      console.error("Error uploading file", error);
-      alert("Error uploading file  " + error.response.data.error.message);
-
+      console.error("Error uploading file: ", error);
+      alert("Error uploading file  " + error);
     }
   };
 
@@ -344,9 +364,29 @@ const Store = () => {
   };
 
   useEffect(() => {
-    getStore();
-    getStoreAc();
+    getStoreAll();
   }, []);
+
+  useEffect(() => {
+    if (storeID) {
+      console.log("Updated storeID ==> ", storeID);
+      getStore();
+      getStoreAc();
+      localStorage.setItem("store_id", storeID);
+    }
+  }, [storeID]);
+
+  const textFieldStyles = {
+    "& .MuiInputLabel-root": { color: "white" },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "white" },
+      "&:hover fieldset": { borderColor: "white" },
+      "&.Mui-focused fieldset": {
+        borderColor: "white",
+      },
+    },
+    "& .MuiInputBase-input": { color: "white" },
+  };
 
   return (
     <Box sx={{ marginTop: 8 }}>
@@ -383,9 +423,16 @@ const Store = () => {
                     <Box>
                       <Box>
                         <Button
-                        sx={{width: "100%", margin: 4 , backgroundColor:"white" , color: "red"}}
-                          onClick={() => navigate("/store/createAc")} 
-                        >+ add New Activity</Button>
+                          sx={{
+                            width: "100%",
+                            margin: 4,
+                            backgroundColor: "white",
+                            color: "red",
+                          }}
+                          onClick={() => navigate("/store/createAc")}
+                        >
+                          + add New Activity
+                        </Button>
                       </Box>
                       <Activity
                         data={storeAc}
@@ -396,45 +443,15 @@ const Store = () => {
                   )}
                   {activeTab === 1 && (
                     <Box>
-                      {/* Name */}
+                      {/* Store Name */}
                       <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
                         <TextField
                           fullWidth
-                          label="First Name"
+                          label="Store Name"
                           variant="outlined"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          sx={{
-                            flex: 1,
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
-                        />
-                        <TextField
-                          fullWidth
-                          label="Last Name"
-                          variant="outlined"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          sx={{
-                            flex: 1,
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
+                          sx={textFieldStyles}
                         />
                       </Box>
 
@@ -460,47 +477,15 @@ const Store = () => {
                         />
                       </Box>
 
-                      {/* username */}
+                      {/* House Number, Alley, Road */}
                       <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
                         <TextField
                           fullWidth
-                          label="Username"
+                          label="House Number"
                           variant="outlined"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
-                        />
-                      </Box>
-
-                      {/* Housename and Alley and Road*/}
-                      <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
-                        <TextField
-                          fullWidth
-                          label="Housename"
-                          variant="outlined"
-                          value={housename}
-                          onChange={(e) => setHousename(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          value={houseNumber}
+                          onChange={(e) => setHouseNumber(e.target.value)}
+                          sx={textFieldStyles}
                         />
                         <TextField
                           fullWidth
@@ -508,17 +493,7 @@ const Store = () => {
                           variant="outlined"
                           value={alley}
                           onChange={(e) => setAlley(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          sx={textFieldStyles}
                         />
                         <TextField
                           fullWidth
@@ -526,21 +501,11 @@ const Store = () => {
                           variant="outlined"
                           value={road}
                           onChange={(e) => setRoad(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          sx={textFieldStyles}
                         />
                       </Box>
 
-                      {/* District and Sub-District and Province */}
+                      {/* District, Sub-District, Province */}
                       <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
                         <TextField
                           fullWidth
@@ -548,17 +513,7 @@ const Store = () => {
                           variant="outlined"
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          sx={textFieldStyles}
                         />
                         <TextField
                           fullWidth
@@ -566,17 +521,7 @@ const Store = () => {
                           variant="outlined"
                           value={subDistrict}
                           onChange={(e) => setSubDistrict(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          sx={textFieldStyles}
                         />
                         <TextField
                           fullWidth
@@ -584,17 +529,7 @@ const Store = () => {
                           variant="outlined"
                           value={province}
                           onChange={(e) => setProvince(e.target.value)}
-                          sx={{
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "white" },
-                              "&:hover fieldset": { borderColor: "white" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "white",
-                              },
-                            },
-                            "& .MuiInputBase-input": { color: "white" },
-                          }}
+                          sx={textFieldStyles}
                         />
                       </Box>
 
@@ -726,6 +661,70 @@ const Store = () => {
             </Box>
           </Box>
         </>
+      )}
+
+      {showMultipleStores && (
+        <Box sx={{ margin: 8 }}>
+          {multipleStores.map((store) => (
+            <Box
+              key={store.store_id}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                margin: 5,
+                backgroundColor: "#444",
+                borderRadius: "1rem",
+                padding: 2,
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              {/* Avatar Image */}
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <img
+                  src={store.store_image}
+                  alt={store.name_store}
+                  width={80}
+                  height={80}
+                  style={{
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    marginRight: "1rem",
+                  }}
+                />
+
+                <Box>
+                  <Typography variant="h6">{store.name_store}</Typography>
+                  <Typography variant="body2">Road: {store.road}</Typography>
+                  <Typography variant="body2">
+                    Sub District: {store.sub_district}
+                  </Typography>
+                  <Typography variant="body2">Alley: {store.alley}</Typography>
+                  <Typography variant="body2">
+                    District: {store.district}
+                  </Typography>
+                  <Typography variant="body2">
+                    Province: {store.province}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <button
+                onClick={() => setStoreID(store.store_id)}
+                style={{
+                  padding: "0.5rem 1rem",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "0.5rem",
+                  cursor: "pointer",
+                }}
+              >
+                Select Store
+              </button>
+            </Box>
+          ))}
+        </Box>
       )}
     </Box>
   );

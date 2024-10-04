@@ -9,6 +9,7 @@ import NotificationPage from "../pages/NotificationPage";
 import ParticipationHistory from '../pages/ParticipationHistory';
 import EventDetailPage from '../pages/DetailPage';
 import Profile from '../pages/Profile';
+import ProfileView from '../pages/ProfileView';
 import ProfileEdit from '../pages/ProfileEdit';
 import Index from '../pages/Index';
 import EditPostGamePage from "../pages/EditPostGamePage ";
@@ -16,6 +17,7 @@ import Store from '../pages/store';
 import StoreAc from "../pages/storeActivity";
 import EditParticipantsPage from '../pages/EditParticipantsPage'; // Import the new component
 import Adm from "../pages/Admin";
+import AcEdit from "../pages/storeAcEdit"
 
 const router = createBrowserRouter([
   {
@@ -85,6 +87,14 @@ const router = createBrowserRouter([
       {
         path: "manage_contracts",
         element: <Adm />
+      },
+      {
+        path: "store/editActivity/:encodedId",
+        element: <AcEdit />
+      },
+      {
+        path: "profile/user/:encodedId",
+        element: <ProfileView />
       }
     ]
   }
