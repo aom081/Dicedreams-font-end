@@ -264,6 +264,7 @@ const ProfileEdit = () => {
       setBirthday(dayjs(response.data.birthday));
       console.log("User data fetched successfully", response.data);
     } catch (error) {
+      alert("Error fetching user data");
       console.error("Error fetching user data", error);
     }
   };

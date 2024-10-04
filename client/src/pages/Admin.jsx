@@ -15,6 +15,7 @@ import {
   Toolbar,
   IconButton,
   Typography,
+  TextField, 
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ import axios from "axios";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,16 +44,18 @@ const Admin = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (response.data.role != "admin") {
+        if (response.data.role !== "admin") {
           alert("ไม่สามารถใช้งานส่วนนี้ได้");
           navigate("/");
         } else {
           fetchUsers();
         }
       } catch (error) {
+        alert("Error fetching users");
         console.error("Error fetching users:", error);
       }
     };
+
     const fetchUsers = async () => {
       try {
         const response = await fetch(
@@ -61,6 +65,7 @@ const Admin = () => {
         setUsers(data);
         console.log(data);
       } catch (error) {
+        alert("Error fetching users");
         console.error("Error fetching users:", error);
       }
     };
@@ -69,7 +74,7 @@ const Admin = () => {
   }, []);
 
   const handleHomeClick = () => {
-    navigate("/Home");
+    navigate("/");
   };
 
   const deluser = async (id) => {
@@ -98,12 +103,21 @@ const Admin = () => {
       });
       console.log(response.data);
       alert("User deleted successfully");
-      // fetchUsers();
       window.location.reload();
     } catch (error) {
+      alert("Error deleting user");
       console.error("Error deleting user:", error.response.data.error);
     }
   };
+
+  const filteredUsers = users.filter((user) => {
+    return (
+      user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phone_number.includes(searchTerm)
+    );
+  });
 
   return (
     <Box sx={{ marginTop: 8 }}>
@@ -127,7 +141,14 @@ const Admin = () => {
           }}
         >
           <Typography variant="h3">User list</Typography>
-          <Button variant="contained">Next</Button>
+          {/* Search Input */}
+          <TextField
+            label="Search users"
+            variant="outlined"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ width: "300px" }} 
+          />
         </Box>
 
         <TableContainer component={Paper} sx={{ marginTop: 3 }}>
@@ -147,7 +168,7 @@ const Admin = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user, index) => (
+              {filteredUsers.map((user, index) => (
                 <TableRow key={user.users_id}>
                   <TableCell>
                     <Checkbox />
@@ -161,7 +182,6 @@ const Admin = () => {
                   <TableCell>{user.phone_number}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    {/* Use an arrow function to call deluser */}
                     <Button
                       variant="outlined"
                       color="secondary"

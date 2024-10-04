@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Buffer } from "buffer";
 import {
   Box,
   Avatar,
@@ -16,10 +18,8 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import "../profile.css";
-import UserPosts from "../components/UPost";
-
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import UserPosts from "../components/UPost";
 
 const calculateAge = (birthdayString) => {
   const birthday = new Date(birthdayString);
@@ -46,31 +46,30 @@ const calculateAge = (birthdayString) => {
   };
 };
 
-const Profile = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+const ProfileView = () => {
   const [user, setUser] = useState(null);
   const [age, setAge] = useState(null);
-
-  const menuOpen = Boolean(anchorEl);
+  const { encodedId } = useParams();
   const navigate = useNavigate();
+
+  const decodeUserId = (encodedId) => {
+    try {
+      return Buffer.from(encodedId, "base64").toString("utf-8");
+    } catch (error) {
+      console.error("Error decoding user ID:", error);
+      navigate("/");
+    }
+  };
 
   const getUser = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const userId = localStorage.getItem("users_id");
+      const userId = decodeUserId(encodedId);
 
       if (!token) {
         alert("กรุณาลอกอินใหม่อีกครั้ง");
         navigate("/");
-        {
         throw new Error("No token found");
-      }
-      }
-
-      if (!userId) {
-        alert("User ID not found")
-        console.error("User ID not found");
-        return;
       }
 
       const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${userId}`;
@@ -79,21 +78,22 @@ const Profile = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+
       setUser(response.data);
       if (response.data.role === "store") {
         navigate("/store");
-      }else if (response.data.role === "admin") {
+      } else if (response.data.role === "admin") {
         navigate("/manage_contracts");
       }
     } catch (error) {
-      aler("Error fetching user data");
+      alert("Error fetching user data");
       console.error("Error fetching user data", error);
     }
   };
 
   useEffect(() => {
     getUser();
-  }, []);
+  }, [encodedId]);
 
   useEffect(() => {
     if (user && user.birthday) {
@@ -136,10 +136,6 @@ const Profile = () => {
 
     const dayWithSuffix = `${day}${suffix(day)}`;
     return formattedDate.replace(day.toString(), dayWithSuffix);
-  };
-
-  const handleEditProfileClick = () => {
-    navigate("/profile/edit");
   };
 
   return (
@@ -211,10 +207,10 @@ const Profile = () => {
                 multiline
                 rows={3}
                 InputLabelProps={{
-                  readOnly: true,
                   style: { color: "white" },
                 }}
                 InputProps={{
+                  readOnly: true,
                   style: { color: "white", borderColor: "white" },
                 }}
                 sx={{
@@ -285,19 +281,6 @@ const Profile = () => {
               >
                 Participation History
               </Button>
-              <Button
-                onClick={handleEditProfileClick}
-                sx={{
-                  color: "#1944ba",
-                  borderColor: "#112233",
-                  "&:hover": {
-                    borderColor: "#112233",
-                    backgroundColor: "rgba(17,34,51,0.1)",
-                  },
-                }}
-              >
-                Edit Profile
-              </Button>
             </ButtonGroup>
           </Box>
         </Box>
@@ -308,4 +291,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileView;

@@ -10,6 +10,7 @@ import {
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import crypto from "crypto-js"; // Import crypto-js for hashing
+import axios from "axios";
 
 const formatDateToThai = (isoDateString) => {
   const thaiDays = [
@@ -42,7 +43,7 @@ const formatDateToThai = (isoDateString) => {
   const day = date.getDate();
   const month = date.getMonth();
   // const year = date.getFullYear() + 543;
-  const year = date.getFullYear() ;
+  const year = date.getFullYear();
   const weekday = thaiDays[date.getDay()];
 
   const hours = date.getHours();
@@ -75,8 +76,48 @@ const StoreAc = ({ data, storeImg, storeName }) => {
   };
 
   const handleEditClick = () => {
-    const encodedId = encodeId(selectedActivityId); 
+    const encodedId = encodeId(selectedActivityId);
     navigate(`/store/editActivity/${encodedId}`);
+  };
+
+  const deleteAc = async () => {
+    const acID = selectedActivityId;
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this activity?"
+    );
+    if (!confirmDelete) {
+      return; 
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("กรุณาลอกอินใหม่อีกครั้ง");
+      navigate("/"); 
+      return; 
+    }
+
+    try {
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity/${acID}`;
+
+      const response = await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(response.data);
+      alert("Activity deleted successfully");
+      window.location.reload(); 
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Error deleting activity: ${error.response.data.error}`);
+        console.error("Error details:", error.response.data.error);
+      } else {
+        alert("Error deleting activity");
+        console.error("Unknown error occurred:", error);
+      }
+    }
   };
 
   if (!data || data.length === 0) {
@@ -133,7 +174,7 @@ const StoreAc = ({ data, storeImg, storeName }) => {
               aria-haspopup="true"
               onClick={(event) =>
                 handleMenuClick(event, activity.post_activity_id)
-              } // Pass post_activity_id here
+              }
               sx={{ color: "white" }}
             >
               <MoreVertIcon />
@@ -157,10 +198,19 @@ const StoreAc = ({ data, storeImg, storeName }) => {
                 key="EDIT"
                 onClick={() => {
                   handleMenuClose();
-                  handleEditClick(); // No need to pass the id, it's already in state
+                  handleEditClick();
                 }}
               >
                 EDIT
+              </MenuItem>
+
+              <MenuItem
+                key="DELETE ACTIVITY"
+                onClick={async () => {
+                  await deleteAc();
+                }}
+              >
+                Delete
               </MenuItem>
             </Menu>
           </Box>
