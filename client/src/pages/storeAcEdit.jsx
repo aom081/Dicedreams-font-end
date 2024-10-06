@@ -8,6 +8,7 @@ import {
   TextField,
 } from "@mui/material";
 import axios from "axios";
+import { format } from "date-fns";
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -138,10 +139,17 @@ const EditActivity = () => {
         base64Image = await convertImageToBase64(selectedFile);
       }
 
+      const formattedDateActivity = editableData.date_activity 
+      ? format(new Date(editableData.date_activity), "MM/dd/yyyy") 
+      : '';
+
       const updatedData = {
         ...editableData,
+        date_activity: formattedDateActivity, 
         ...(base64Image && { post_activity_image: base64Image }),
       };
+
+      console.log("updatedData==>", updatedData);
 
       const response = await axios.put(url, updatedData, {
         headers: {
@@ -149,7 +157,7 @@ const EditActivity = () => {
         },
       });
 
-      alert("Changes saved successfully!");
+      alert("Changes saved successfully!", response.data);
       navigate("/store");
     } catch (error) {
       console.error("Failed to save changes:", error);
