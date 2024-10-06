@@ -17,7 +17,7 @@ const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
-    const { accessToken, logout, username, profilePic } = useContext(AuthContext);
+    const { accessToken, logout, username, profilePic, role } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useMediaQuery('(max-width: 600px)');
@@ -288,7 +288,13 @@ const Navbar = () => {
     );
 
     return (
-        <AppBar position="fixed" color="inherit" id="navbar">
+        <AppBar position="fixed" sx={{
+            backgroundColor:
+                role === 'admin' ? '#3F51B5' :        // Blue for Admin
+                    role === 'store' ? '#DC143C' :         // Crimson for Store
+                        '#272727'                              // Dark Gray for User
+        }}  
+        id="navbar">
             <Toolbar>
                 {location.pathname === '/login' || location.pathname === '/register'
                     ? renderBasicNavbar()

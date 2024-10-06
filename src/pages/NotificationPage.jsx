@@ -211,7 +211,7 @@ const NotificationPage = () => {
                                         display: 'flex',
                                         flexDirection: 'column', // Vertical stacking
                                         gap: 2, // Gap between sections
-                                        maxWidth: '70%',
+                                        maxWidth: '100%',
                                         padding: 2,
                                         borderRadius: 2,
                                         backgroundColor: notification.read ? '#808080' : '#1976d2', // Different color for read vs unread
@@ -255,8 +255,7 @@ const NotificationPage = () => {
                                     <TableRow>
                                         <TableCell id="user-column-header" sx={{ color: 'white' }}>User</TableCell>
                                         <TableCell id="game-column-header" sx={{ color: 'white' }}>Game</TableCell>
-                                        <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center' }}>Approve</TableCell>
-                                        <TableCell id="refuse-column-header" sx={{ color: 'white', textAlign: 'center' }}>Refuse</TableCell>
+                                        <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center' }}>participants</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -270,10 +269,13 @@ const NotificationPage = () => {
                                             </TableCell>
                                             <TableCell sx={{ color: 'white' }}>{request.name_games}</TableCell>
                                             <TableCell sx={{ textAlign: 'center' }}>
-                                                <Button variant="contained" color="success">Approve</Button>
-                                            </TableCell>
-                                            <TableCell sx={{ textAlign: 'center' }}>
-                                                <Button variant="contained" color="error">Refuse</Button>
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => navigate(`/edit-participants/${request.data.post_games_id}`)}
+                                                >
+                                                    View Participants
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
