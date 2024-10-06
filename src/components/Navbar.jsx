@@ -64,6 +64,7 @@ const Navbar = () => {
                     onClick={toggleDrawer(false)}
                     onKeyDown={toggleDrawer(false)}
                     id="participation-history-link"
+                    disabled={!accessToken} 
                 >
                     <ListItemText primary="Show Participation History" />
                 </ListItem>
@@ -74,6 +75,7 @@ const Navbar = () => {
                     onClick={toggleDrawer(false)}
                     onKeyDown={toggleDrawer(false)}
                     id="notifications-link"
+                    disabled={!accessToken} 
                 >
                     <ListItemText primary="Notifications" />
                 </ListItem>
@@ -92,6 +94,7 @@ const Navbar = () => {
                     component={Link}
                     to="/profile"
                     id="profile-link"
+                    disabled={!accessToken} 
                 >
                     <ListItemText primary="Profile" />
                 </ListItem>
