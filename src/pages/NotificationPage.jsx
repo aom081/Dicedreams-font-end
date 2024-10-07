@@ -210,7 +210,7 @@ const NotificationPage = () => {
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'column', // Vertical stacking
-                                        gap: 2, // Gap between sections
+                                        gap: 1, // Gap between sections
                                         maxWidth: '100%',
                                         padding: 2,
                                         borderRadius: 2,

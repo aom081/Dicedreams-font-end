@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
     AppBar, Toolbar, IconButton, Typography, Input, Box, Drawer,
     List, ListItem, ListItemText, Button, Divider, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Avatar
@@ -12,11 +12,16 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 import FilterComponent from './FilterComponent';
+import FilterComponentInNavBar from './FilterComponentInNavBar';
+import { LocalizationProvider } from '@mui/x-date-pickers'; // Import LocalizationProvider
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; // Import Dayjs Adapter
 
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [filterVisible, setFilterVisible] = useState(false); // State to control filter visibility
+    const filterRef = useRef(null); // Ref to detect outside clicks
     const { accessToken, logout, username, profilePic, role } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
@@ -39,6 +44,24 @@ const Navbar = () => {
         setDialogOpen(false);
         navigate('/');
     };
+
+    const handleFilterClick = () => {
+        setFilterVisible(!filterVisible); // Toggle filter visibility
+    };
+
+    // Handle outside click to hide filter component
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (filterRef.current && !filterRef.current.contains(event.target)) {
+                setFilterVisible(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const drawerList = () => (
         <Box
@@ -64,7 +87,7 @@ const Navbar = () => {
                     onClick={toggleDrawer(false)}
                     onKeyDown={toggleDrawer(false)}
                     id="participation-history-link"
-                    disabled={!accessToken} 
+                    disabled={!accessToken}
                 >
                     <ListItemText primary="Show Participation History" />
                 </ListItem>
@@ -75,7 +98,7 @@ const Navbar = () => {
                     onClick={toggleDrawer(false)}
                     onKeyDown={toggleDrawer(false)}
                     id="notifications-link"
-                    disabled={!accessToken} 
+                    disabled={!accessToken}
                 >
                     <ListItemText primary="Notifications" />
                 </ListItem>
@@ -94,7 +117,7 @@ const Navbar = () => {
                     component={Link}
                     to="/profile"
                     id="profile-link"
-                    disabled={!accessToken} 
+                    disabled={!accessToken}
                 >
                     <ListItemText primary="Profile" />
                 </ListItem>
@@ -151,6 +174,7 @@ const Navbar = () => {
                     <IconButton
                         color="inherit"
                         id="search-icon"
+                        onClick={handleFilterClick} // Toggle filter on search button click
                     >
                         <SearchIcon />
                     </IconButton>
@@ -161,6 +185,7 @@ const Navbar = () => {
                             color="primary"
                             sx={{ marginLeft: 2 }}
                             id="search-button"
+                            onClick={handleFilterClick} // Toggle filter on button click
                         >
                             Search...
                         </Button>
@@ -169,13 +194,13 @@ const Navbar = () => {
             </Box>
             {accessToken ? (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ 
-                        backgroundColor: 'rgba(220, 20, 60, 0.5)', 
-                        display: 'flex', 
+                    <Box sx={{
+                        backgroundColor: 'rgba(220, 20, 60, 0.5)',
+                        display: 'flex',
                         alignItems: 'center',
                         padding: '5px 10px',
                         borderRadius: '8px',
-                         }}>
+                    }}>
                         {!isMobile && (
                             <Link
                                 to="/profile"
@@ -211,7 +236,7 @@ const Navbar = () => {
                             id="profile-picture"
                         />
                     </Box>
-                    
+
                     <IconButton
                         color="inherit"
                         onClick={() => setDialogOpen(true)}
@@ -227,23 +252,23 @@ const Navbar = () => {
                     </IconButton>
                 </Box>
             ) : (
-                    <>
-                        {isMobile ? (
-                            <>
-                                <IconButton color="inherit" onClick={() => navigate('/login')} id="login-icon">
-                                    <LoginIcon />
-                                </IconButton>
-                                <IconButton color="primary" onClick={() => navigate('/login?register=true')} id="register-icon">
-                                    <AppRegistrationIcon />
-                                </IconButton>
-                            </>
-                        ) : (
-                            <>
-                                <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
-                                <Button variant="contained" color="primary" onClick={() => navigate('/login?register=true')} id="register-button">Register</Button>
-                            </>
-                        )}
-                    </>
+                <>
+                    {isMobile ? (
+                        <>
+                            <IconButton color="inherit" onClick={() => navigate('/login')} id="login-icon">
+                                <LoginIcon />
+                            </IconButton>
+                            <IconButton color="primary" onClick={() => navigate('/login?register=true')} id="register-icon">
+                                <AppRegistrationIcon />
+                            </IconButton>
+                        </>
+                    ) : (
+                        <>
+                            <Button color="inherit" onClick={() => navigate('/login')} id="login-button">Log in</Button>
+                            <Button variant="contained" color="primary" onClick={() => navigate('/login?register=true')} id="register-button">Register</Button>
+                        </>
+                    )}
+                </>
             )}
         </>
     );
@@ -291,41 +316,26 @@ const Navbar = () => {
     );
 
     return (
-        <AppBar position="fixed" sx={{
-            backgroundColor:
-                role === 'admin' ? '#3F51B5' :        // Blue for Admin
-                    role === 'store' ? '#DC143C' :         // Crimson for Store
-                        '#272727'                              // Dark Gray for User
-        }}  
-        id="navbar">
-            <Toolbar>
-                {location.pathname === '/login' || location.pathname === '/register'
-                    ? renderBasicNavbar()
-                    : renderFullNavbar()
-                }
-            </Toolbar>
-            <Dialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                aria-labelledby="logout-dialog-title"
-                aria-describedby="logout-dialog-description"
-            >
-                <DialogTitle id="logout-dialog-title">Logout</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="logout-dialog-description">
-                        คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDialogOpen(false)} color="primary" id="cancel-logout-button">
-                        ยกเลิก
-                    </Button>
-                    <Button onClick={handleLogout} color="primary" autoFocus id="confirm-logout-button">
-                        Logout
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </AppBar>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <AppBar position="fixed" sx={{ backgroundColor: role === 'admin' ? '#3F51B5' : role === 'store' ? '#DC143C' : '#272727' }}>
+                <Toolbar>
+                    {location.pathname === '/login' || location.pathname === '/register' ? renderBasicNavbar() : renderFullNavbar()}
+                </Toolbar>
+                <Box ref={filterRef} sx={{ padding: '10px', display: filterVisible ? 'block' : 'none' }}>
+                    <FilterComponentInNavBar onFilter={(filters) => console.log('Filters applied:', filters)} />
+                </Box>
+                <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+                    <DialogTitle>Logout</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?</DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDialogOpen(false)} color="primary">ยกเลิก</Button>
+                        <Button onClick={handleLogout} color="primary" autoFocus>Logout</Button>
+                    </DialogActions>
+                </Dialog>
+            </AppBar>
+        </LocalizationProvider>
     );
 };
 
