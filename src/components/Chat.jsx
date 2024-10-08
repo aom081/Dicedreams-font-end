@@ -1,131 +1,61 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert, AlertTitle, IconButton, Menu, MenuItem, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert, AlertTitle, IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import dayjs from 'dayjs';
 
 const Chat = ({ userId, username, post_games_id }) => {
     const [chatMessage, setChatMessage] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [messages, setMessages] = useState([
+        {
+            chat_id: 1,
+            message: "Hello! This is a test message.",
+            datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
+            user_id: 1,
+            user: { username: 'JohnDoe', user_image: '' },
+        },
+        {
+            chat_id: 2,
+            message: "This is another test message.",
+            datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
+            user_id: 2,
+            user: { username: 'JaneDoe', user_image: '' },
+        },
+    ]);
     const [errorMessage, setErrorMessage] = useState('');
     const [editingMessage, setEditingMessage] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
     const [currentMessage, setCurrentMessage] = useState(null);
     const messagesEndRef = useRef(null);
 
-    // ดึงข้อมูลแชทครั้งเดียวเมื่อ component mount และใช้ interval ดึงข้อมูลซ้ำทุก 10 วินาที
-    const fetchChatMessages = async (postId) => {
-        setLoading(true); // เปิดการแสดง Loading Indicator
-        try {
-            const response = await fetch(
-                `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/post/${postId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                    },
-                }
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setMessages(data); // ตั้งค่าให้แสดงข้อความที่ดึงมา
-            } else {
-                setErrorMessage('โหลดข้อความไม่สำเร็จ');
-            }
-        } catch (error) {
-            setErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-        } finally {
-            setLoading(false); // ปิดการแสดง Loading Indicator เมื่อโหลดเสร็จสิ้น
-        }
-    };
-
-    const sendMessage = async () => {
+    const sendMessage = () => {
         if (chatMessage.trim()) {
-            try {
-                const token = localStorage.getItem('access_token');
-                const newMessage = {
-                    message: chatMessage,
-                    datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
-                    user_id: userId,
-                    post_games_id: post_games_id
-                };
+            const newMessage = {
+                chat_id: messages.length + 1,
+                message: chatMessage,
+                datetime_chat: dayjs().format('MM/DD/YYYY HH:mm:ss'),
+                user_id: userId,
+                user: { username, user_image: '' },
+            };
 
-                let response;
-                if (editingMessage) {
-                    // ถ้าเป็นการแก้ไขข้อความ
-                    response = await fetch(
-                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${editingMessage.chat_id}`,
-                        {
-                            method: 'PUT',
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(newMessage)
-                        }
-                    );
-                } else {
-                    // ถ้าเป็นการส่งข้อความใหม่
-                    response = await fetch(
-                        `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat`,
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(newMessage)
-                        }
-                    );
-                }
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (editingMessage) {
-                        // อัปเดตข้อความที่แก้ไข
-                        setMessages((prevMessages) =>
-                            prevMessages.map((msg) =>
-                                msg.chat_id === editingMessage.chat_id ? data : msg
-                            )
-                        );
-                        setEditingMessage(null);
-                    } else {
-                        // เพิ่มข้อความใหม่
-                        setMessages((prevMessages) => [...prevMessages, data]);
-                        setChatMessage(''); // เคลียร์ข้อความที่ส่งแล้ว
-                    }
-                    scrollToBottom(); // เลื่อนหน้าไปยังข้อความล่าสุด
-                } else {
-                    setErrorMessage('ไม่สามารถส่งข้อความได้');
-                }
-            } catch (error) {
-                setErrorMessage('เกิดข้อผิดพลาดในการส่งข้อความ');
+            if (editingMessage) {
+                setMessages((prevMessages) =>
+                    prevMessages.map((msg) =>
+                        msg.chat_id === editingMessage.chat_id ? { ...msg, message: chatMessage } : msg
+                    )
+                );
+                setEditingMessage(null);
+            } else {
+                setMessages((prevMessages) => [...prevMessages, newMessage]);
             }
+
+            setChatMessage('');
+            scrollToBottom();
         }
     };
 
-    const handleDeleteMessage = async (chatId) => {
-        try {
-            const token = localStorage.getItem('access_token');
-            const response = await fetch(
-                `https://dicedreams-backend-deploy-to-render.onrender.com/api/chat/${chatId}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (response.ok) {
-                setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== chatId));
-                handleMenuClose();
-            } else {
-                setErrorMessage('ลบข้อความไม่สำเร็จ');
-            }
-        } catch (error) {
-            setErrorMessage('ลบข้อความไม่สำเร็จ');
-        }
+    const handleDeleteMessage = (chatId) => {
+        setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== chatId));
+        handleMenuClose();
     };
 
     const handleEditMessage = (message) => {
@@ -149,14 +79,6 @@ const Chat = ({ userId, username, post_games_id }) => {
         setCurrentMessage(null);
     };
 
-    useEffect(() => {
-        if (post_games_id) {
-            fetchChatMessages(post_games_id);
-            const interval = setInterval(() => fetchChatMessages(post_games_id), 10000); // ดึงข้อมูลทุก 10 วินาที
-            return () => clearInterval(interval);
-        }
-    }, [post_games_id]);
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -165,11 +87,7 @@ const Chat = ({ userId, username, post_games_id }) => {
         <Box sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
             <Typography variant="h5" gutterBottom>Chat</Typography>
             <Box sx={{ height: 300, overflowY: 'auto', backgroundColor: '#333', padding: 2, borderRadius: 1 }}>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                        <CircularProgress /> {/* แสดง Loading Spinner */}
-                    </Box>
-                ) : messages.length > 0 ? (
+                {messages.length > 0 ? (
                     messages.map((msg) => (
                         <Box
                             key={msg.chat_id}
@@ -198,9 +116,7 @@ const Chat = ({ userId, username, post_games_id }) => {
                                         {msg.datetime_chat}
                                     </Typography>
                                 </Typography>
-                                <Typography variant="body2">
-                                    {msg.message}
-                                </Typography>
+                                <Typography variant="body2">{msg.message}</Typography>
                             </Box>
                             {msg.user_id === userId && (
                                 <>
