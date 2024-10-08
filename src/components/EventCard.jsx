@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import axios from 'axios';
 import { AuthContext } from '../Auth/AuthContext';
+import UserAvatar from './UserAvatar';
 
 function EventCard(props) {
     const {
@@ -157,15 +158,7 @@ function EventCard(props) {
             <CardHeader
                 id={`event-card-header-${eventId}`}
                 avatar={
-                    <Avatar
-                        sx={{ bgcolor: 'red' }}
-                        aria-label="profile-picture"
-                        src={profilePic || ''}
-                        alt={`${username ? username[0] : 'U'}'s profile picture`}
-                        id={`event-avatar-${eventId}`}
-                    >
-                        {username ? username[0] : 'U'}
-                    </Avatar>
+                    <UserAvatar userId={userId} eventId={eventId} />
                 }
                 action={
                     currentUserId === userId && (

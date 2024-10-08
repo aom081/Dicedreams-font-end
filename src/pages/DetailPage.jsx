@@ -8,6 +8,7 @@ import {
 import { AuthContext } from '../Auth/AuthContext';
 import dayjs from 'dayjs';
 import Chat from '../components/Chat'; // Importing Chat component
+import UserAvatar from '../components/UserAvatar';
 
 const DetailsPage = () => {
     const { id } = useParams();
@@ -231,10 +232,12 @@ const DetailsPage = () => {
                 </Paper>
             )}
 
-            <Paper elevation={3} sx={{
-                padding: { xs: 2, md: 5 },
-                marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
-            }}>
+            <Paper elevation={3}
+                id="logo-participant"
+                sx={{
+                    padding: { xs: 2, md: 5 },
+                    marginTop: 4, backgroundColor: '#2c2c2c', color: 'white'
+                }}>
                 {/* Participants Display Section */}
                 <Typography id="participant-list-title" variant="h6" gutterBottom>
                     Participants
@@ -245,28 +248,46 @@ const DetailsPage = () => {
                         <Avatar
                             id="owner-avatar"
                             alt={event.owner_name}
-                            src={event.owner_image || '/path/to/default/avatar.png'}
+                            src={event.owner_image || '/default-avatar.png'} // Ensure this path is correct
                             sx={{ width: 50, height: 50, marginBottom: 1 }}
                         />
-                        <Typography id="owner-username" variant="body2">{event.owner_name}</Typography>
+                        <Typography variant="body2">{event.owner_name}</Typography>
+                        <Typography variant="caption" color="textSecondary">(Owner)</Typography>
                     </Box>
 
                     {/* Render other participants */}
-                    {participants.map((participant, index) => (
-                        participant.participant_status === 'approved' && (
-                            <Box key={index} id={`participant-${participant.user_id}`} sx={{ textAlign: 'center' }}>
+                    {participants.map((participant, index) => {
+                        const { user } = participant;
+                        const fullName = `${user.first_name} ${user.last_name}`;
+                        const BASE_URL = 'https://dicedreams-backend-deploy-to-render.onrender.com'; // Replace with your actual base URL
+                        const avatarSrc = user.user_image ? `${BASE_URL}/path/to/images/${user.user_image}` : '/default-avatar.png';
+
+                        return (
+                            <Box
+                                key={participant.part_Id}
+                                sx={{
+                                    display: 'flex',            // Enables Flexbox
+                                    flexDirection: 'column',    // Stacks children vertically
+                                    alignItems: 'center',       // Centers children horizontally
+                                    textAlign: 'center',        // Centers text within Typography
+                                    padding: 1,                  // Optional: Adds padding for better spacing
+                                }}
+                            >
                                 <Avatar
-                                    id={`participant-avatar-${participant.user_id}`}
-                                    alt={participant.user_name}
-                                    src={participant.user_image || '/path/to/default/avatar.png'}
-                                    sx={{ width: 50, height: 50, marginBottom: 1 }}
+                                    alt={fullName}
+                                    src={avatarSrc}
+                                    sx={{
+                                        width: 50,
+                                        height: 50,
+                                        marginBottom: 1,
+                                    }}
                                 />
-                                <Typography id={`participant-username-${participant.user_id}`} variant="body2">
-                                    {participant.user_name}
+                                <Typography variant="body2">
+                                    {fullName}
                                 </Typography>
                             </Box>
-                        )
-                    ))}
+                        );
+                    })}
                 </Box>
             </Paper>
 
