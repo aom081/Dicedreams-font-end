@@ -97,8 +97,9 @@ const Store = () => {
       alert("File uploaded and user updated successfully  ");
 
       setTimeout(() => {
-        getStore();
-      }, 2000);
+        window.location.reload()
+        //getStore();
+      }, 500);
     } catch (error) {
       alert("Error uploading file  " + error);
       console.error("Error uploading file: ", error);

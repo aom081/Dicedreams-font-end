@@ -87,14 +87,14 @@ const StoreAc = ({ data, storeImg, storeName }) => {
       "Are you sure you want to delete this activity?"
     );
     if (!confirmDelete) {
-      return; 
+      return;
     }
 
     const token = localStorage.getItem("access_token");
     if (!token) {
       alert("กรุณาลอกอินใหม่อีกครั้ง");
-      navigate("/"); 
-      return; 
+      navigate("/");
+      return;
     }
 
     try {
@@ -108,7 +108,7 @@ const StoreAc = ({ data, storeImg, storeName }) => {
 
       console.log(response.data);
       alert("Activity deleted successfully");
-      window.location.reload(); 
+      window.location.reload();
     } catch (error) {
       if (error.response && error.response.data && error.response.data.error) {
         alert(`Error deleting activity: ${error.response.data.error}`);
@@ -235,8 +235,15 @@ const StoreAc = ({ data, storeImg, storeName }) => {
             เวลาที่กิจกรรมเริ่ม: {activity.time_activity}
           </Typography>
           <Typography variant="body1">
-            สถานที่: {activity.location || "????"}
+            สถานที่:{" "}
+            {activity.location || (
+              <>
+                43/5 ถนนราชดำเนิน (ถนนต้นสน) ซอย เทศบาล <br />
+                &nbsp;&nbsp;&nbsp; ตำบลพระปฐมเจดีย์ อำเภอเมืองนครปฐม นครปฐม 73000
+              </>
+            )}
           </Typography>
+
           <Typography variant="body1">
             {activity.detail_post || "????"}
           </Typography>

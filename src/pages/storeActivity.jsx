@@ -161,7 +161,7 @@ const StoreAc = () => {
         name_activity: acName,
         status_post: "active",
         detail_post: acDetail,
-        date_activity: eventDate.format("YYYY-MM-DD"),
+        date_activity: eventDate.format("MM/DD/YYYY"),
         time_activity: eventTime.format("HH:mm:ss"),
         post_activity_image: base64Image,
         store_id: user_id,
