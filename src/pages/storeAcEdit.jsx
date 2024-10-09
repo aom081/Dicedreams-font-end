@@ -18,14 +18,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import UploadIcon from "@mui/icons-material/UploadFile";
-import dayjs from "dayjs";
 
 const decodeId = (encodedId) => {
   encodedId = encodedId.replace(/-/g, "+").replace(/_/g, "/");
@@ -40,7 +33,7 @@ const EditActivity = () => {
     name_activity: "",
     detail_post: "",
     date_activity: "",
-    time_activity: dayjs(),
+    time_activity: "",
     status_post: "",
   });
   const [dragging, setDragging] = useState(false);
@@ -56,15 +49,6 @@ const EditActivity = () => {
   });
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-
-  const handleTimeChange = (newValue) => {
-    if (newValue && newValue.isValid()) {
-      setEditableData((prevData) => ({
-        ...prevData,
-        time_activity: newValue,
-      }));
-    }
-  };
 
   const getStoreAcId = async (postId) => {
     try {
@@ -95,9 +79,7 @@ const EditActivity = () => {
           response.data.date_activity === "0000-00-00"
             ? ""
             : response.data.date_activity,
-        time_activity: response.data.time_activity
-          ? dayjs(response.data.time_activity)
-          : dayjs(),
+        time_activity: response.data.time_activity || "",
         status_post: response.data.status_post,
       });
       setImagePreview(response.data.post_activity_image);
@@ -254,122 +236,95 @@ const EditActivity = () => {
           Edit Activity
         </Typography>
         <Grid container spacing={3}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            {/* Image Upload Section */}
-            <Grid item xs={12} md={6}>
-              <Box
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                sx={{
-                  border: dragging
-                    ? "2px dashed #000"
-                    : "2px solid transparent",
-                  padding: 2,
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                onClick={chooseFile}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
+          {/* Image Upload Section */}
+          <Grid item xs={12} md={6}>
+            <Box
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              sx={{
+                border: dragging ? "2px dashed #000" : "2px solid transparent",
+                padding: 2,
+                textAlign: "center",
+                cursor: "pointer",
+              }}
+              onClick={chooseFile}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+              {imagePreview ? (
+                <Avatar
+                  variant="rounded"
+                  src={imagePreview}
+                  alt="Selected image"
+                  sx={{ width: "100%", height: "auto", borderRadius: 4 }}
                 />
-                {imagePreview ? (
-                  <Avatar
-                    variant="rounded"
-                    src={imagePreview}
-                    alt="Selected image"
-                    sx={{ width: "100%", height: "auto", borderRadius: 4 }}
-                  />
-                ) : (
-                  <Typography variant="body1">
-                    Drag and drop an image here, or click to select one
-                  </Typography>
-                )}
-              </Box>
-            </Grid>
+              ) : (
+                <Typography variant="body1">
+                  Drag and drop an image here, or click to select one
+                </Typography>
+              )}
+            </Box>
+          </Grid>
 
-            {/* Editable Activity Details */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Activity Name"
-                name="name_activity"
-                value={editableData.name_activity}
-                onChange={handleInputChange}
-                fullWidth
-                margin="normal"
-              />
-              <TextField
-                label="Details"
-                name="detail_post"
-                value={editableData.detail_post}
-                onChange={handleInputChange}
-                multiline
-                rows={4}
-                fullWidth
-                margin="normal"
-              />
-              <TextField
-                label="Date of Activity"
-                name="date_activity"
-                type="date"
-                value={editableData.date_activity}
-                onChange={handleInputChange}
-                fullWidth
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-
-              {/* Event Time - Updated to Clock View */}
-              <TimePicker
-                label="Select Time of Event"
-                value={
-                  editableData.time_activity.isValid()
-                    ? editableData.time_activity
-                    : null
-                }
-                onChange={handleTimeChange}
-                viewRenderers={{
-                  hours: renderTimeViewClock,
-                  minutes: renderTimeViewClock,
-                  seconds: renderTimeViewClock,
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      "& .MuiInputLabel-root": { color: "white" },
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": { borderColor: "white" },
-                        "&:hover fieldset": { borderColor: "white" },
-                        "&.Mui-focused fieldset": { borderColor: "white" },
-                      },
-                      "& .MuiInputBase-input": { color: "white" },
-                    }}
-                    inputProps={{ "data-testid": "time-picker" }}
-                    id="time-picker"
-                  />
-                )}
-              />
-
-              <TextField
-                label="Status"
-                name="status_post"
-                value={editableData.status_post}
-                onChange={handleInputChange}
-                fullWidth
-                margin="normal"
-              />
-            </Grid>
-          </LocalizationProvider>
+          {/* Editable Activity Details */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              label="Activity Name"
+              name="name_activity"
+              value={editableData.name_activity}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Details"
+              name="detail_post"
+              value={editableData.detail_post}
+              onChange={handleInputChange}
+              multiline
+              rows={4}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Date of Activity"
+              name="date_activity"
+              type="date"
+              value={editableData.date_activity}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Time of Activity"
+              name="time_activity"
+              type="time"
+              value={editableData.time_activity}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Status"
+              name="status_post"
+              value={editableData.status_post}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+          </Grid>
         </Grid>
 
         {/* Footer Buttons */}
