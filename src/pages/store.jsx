@@ -12,6 +12,13 @@ import {
   CircularProgress,
   Button,
   colors,
+  Snackbar,
+  Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import UploadIcon from "@mui/icons-material/Upload";
 import CloseIcon from "@mui/icons-material/Close";
@@ -47,6 +54,18 @@ const Store = () => {
   const [storeName, setStoreName] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [confirmDialog, setConfirmDialog] = useState(false); // For confirmation dialog
+
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const fileInputRef = useRef(null);
 
   const menuOpen = Boolean(anchorEl);
@@ -63,8 +82,14 @@ const Store = () => {
       const token = localStorage.getItem("access_token");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
@@ -94,14 +119,23 @@ const Store = () => {
       );
 
       console.log("File uploaded and user updated successfully", response.data);
-      alert("File uploaded and user updated successfully  ");
+
+      setSnackbar({
+        open: true,
+        message: "File uploaded and user updated successfully",
+        severity: "success",
+      });
 
       setTimeout(() => {
-        window.location.reload()
+        window.location.reload();
         //getStore();
-      }, 500);
+      }, 2000);
     } catch (error) {
-      alert("Error uploading file  " + error);
+      setSnackbar({
+        open: true,
+        message: "Error uploading file  " + error,
+        severity: "error",
+      });
       console.error("Error uploading file: ", error);
     }
   };
@@ -116,8 +150,14 @@ const Store = () => {
       const userId = localStorage.getItem("users_id");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
@@ -146,11 +186,22 @@ const Store = () => {
         setMultipleStores(getid);
         setShowMultipleStores(true);
       } else {
-        alert("รหัสไม่ตรงกับระบบ");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "รหัสไม่ตรงกับระบบ",
+          severity: "error",
+        });
+
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       }
     } catch (error) {
-      alert("Error fetching store data  " + error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching store data  " + error,
+        severity: "error",
+      });
       console.error("Error fetching store data", error);
     }
   };
@@ -162,13 +213,23 @@ const Store = () => {
       const userId = storeID;
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
       if (!userId) {
-        alert("User ID not found");
+        setSnackbar({
+          open: true,
+          message: "User ID not found",
+          severity: "error",
+        });
         console.error("User ID not found");
         return;
       }
@@ -200,8 +261,18 @@ const Store = () => {
       setProvince(storeData.province || "");
 
       console.log("store data fetched successfully", response.data);
+
+      setSnackbar({
+        open: true,
+        message: "store data fetched successfully ",
+        severity: "success", //error
+      });
     } catch (error) {
-      alert("Error fetching store data  " + error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching store data  " + error,
+        severity: "error", //success
+      });
       console.error("Error fetching store data", error);
     }
   };
@@ -213,13 +284,23 @@ const Store = () => {
       const userId = storeID;
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
       if (!userId) {
-        alert("User ID not found");
+        setSnackbar({
+          open: true,
+          message: "User ID not found ",
+          severity: "error", //success
+        });
         console.error("User ID not found");
         return;
       }
@@ -232,8 +313,17 @@ const Store = () => {
       });
       setstoreAc(response.data);
       console.log("StoreAc data fetched successfully", response.data);
+      setSnackbar({
+        open: true,
+        message: "StoreAc data fetched successfully ",
+        severity: "success", //error
+      });
     } catch (error) {
-      alert("Error fetching StoreAc data  " + error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching StoreAc data  " + error,
+        severity: "error", //success
+      });
       console.error("Error fetching StoreAc data", error);
     }
   };
@@ -262,7 +352,11 @@ const Store = () => {
     setShowUploadBar(true);
 
     if (file.size > 3000000) {
-      alert("ขนาดไฟล์เกิน 3 MB");
+      setSnackbar({
+        open: true,
+        message: "ขนาดไฟล์เกิน 3 MB",
+        severity: "error", //success
+      });
       setUploading(false);
       return;
     }
@@ -276,7 +370,11 @@ const Store = () => {
         "image/gif",
       ].includes(file.type)
     ) {
-      alert("กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ");
+      setSnackbar({
+        open: true,
+        message: "กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ",
+        severity: "error", //success
+      });
       setUploading(false);
       return;
     }
@@ -284,9 +382,16 @@ const Store = () => {
     try {
       const user_id = storeID;
       const token = localStorage.getItem("access_token");
+
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
@@ -322,6 +427,12 @@ const Store = () => {
       console.log("File uploaded and user updated successfully", response.data);
       console.log("Uploaded Image URL:-->", uploadedImageUrl);
 
+      setSnackbar({
+        open: true,
+        message: "File uploaded and user updated successfully",
+        severity: "success", //success
+      });
+
       setTimeout(() => {
         setUploadProgress(0);
         getStore();
@@ -331,7 +442,12 @@ const Store = () => {
       setUploadProgress(0);
       setUploadError("File upload failed");
       console.error("Error uploading file: ", error);
-      alert("Error uploading file  " + error);
+
+      setSnackbar({
+        open: true,
+        message: "Error uploading file  " + error,
+        severity: "error", //success
+      });
     }
   };
 
@@ -391,6 +507,48 @@ const Store = () => {
 
   return (
     <Box sx={{ marginTop: 8 }}>
+      {/* Snackbar for alerts */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation Dialog for confirm actions */}
+      <Dialog open={confirmDialog} onClose={() => setConfirmDialog(false)}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>Are you sure you want to proceed?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setConfirmDialog(false);
+              // Handle the confirmed action here
+            }}
+            color="secondary"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {store && (
         <>
           <Box

@@ -6,9 +6,9 @@ import {
   Button,
   TextField,
   ButtonGroup,
-  Menu,
-  MenuItem,
-  IconButton,
+  Snackbar,
+  Alert,
+  AlertTitle,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -50,9 +50,19 @@ const Profile = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [user, setUser] = useState(null);
   const [age, setAge] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [confirmDialog, setConfirmDialog] = useState(false); // For confirmation dialog
 
   const menuOpen = Boolean(anchorEl);
   const navigate = useNavigate();
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const getUser = async () => {
     try {
@@ -60,15 +70,23 @@ const Profile = () => {
       const userId = localStorage.getItem("users_id");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
-        {
-        throw new Error("No token found");
-      }
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        return;
       }
 
       if (!userId) {
-        alert("User ID not found")
+        setSnackbar({
+          open: true,
+          message: "User ID not found",
+          severity: "error",
+        });
         console.error("User ID not found");
         return;
       }
@@ -82,11 +100,21 @@ const Profile = () => {
       setUser(response.data);
       if (response.data.role === "store") {
         navigate("/store");
-      }else if (response.data.role === "admin") {
+      } else if (response.data.role === "admin") {
         navigate("/manage_contracts");
       }
+      setSnackbar({
+        open: true,
+        message: "Get User Successfully " + response.data.username,
+        severity: "success",
+      });
+
     } catch (error) {
-      aler("Error fetching user data");
+      setSnackbar({
+        open: true,
+        message: "Error fetching user data",
+        severity: "error",
+      });
       console.error("Error fetching user data", error);
     }
   };
@@ -144,6 +172,48 @@ const Profile = () => {
 
   return (
     <Box sx={{ marginTop: 8 }}>
+      {/* Snackbar for alerts */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation Dialog for confirm actions */}
+      <Dialog open={confirmDialog} onClose={() => setConfirmDialog(false)}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>Are you sure you want to proceed?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setConfirmDialog(false);
+              // Handle the confirmed action here
+            }}
+            color="secondary"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box
         sx={{
           backgroundColor: "#222",

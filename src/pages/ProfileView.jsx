@@ -8,43 +8,16 @@ import {
   Button,
   TextField,
   ButtonGroup,
-  Menu,
-  MenuItem,
-  IconButton,
+  Snackbar,
+  Alert,
+  AlertTitle,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import "../profile.css";
-import axios from "axios";
 import UserPosts from "../components/UPost";
-
-const calculateAge = (birthdayString) => {
-  const birthday = new Date(birthdayString);
-  const now = new Date();
-
-  const diff = now - birthday;
-  const years = now.getFullYear() - birthday.getFullYear();
-  const months = now.getMonth() - birthday.getMonth() + years * 12;
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24)) % 30;
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
-
-  const ageYears = Math.floor(months / 12);
-  const ageMonths = months % 12;
-
-  return {
-    years: ageYears,
-    months: ageMonths,
-    days,
-    hours,
-    minutes,
-    seconds,
-  };
-};
+import axios from "axios";
 
 const ProfileView = () => {
   const [user, setUser] = useState(null);
@@ -52,12 +25,30 @@ const ProfileView = () => {
   const { encodedId } = useParams();
   const navigate = useNavigate();
 
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // or "error"
+  });
+
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [action, setAction] = useState(() => () => {});
+
   const decodeUserId = (encodedId) => {
     try {
       return Buffer.from(encodedId, "base64").toString("utf-8");
     } catch (error) {
       console.error("Error decoding user ID:", error);
-      navigate("/");
+      setSnackbar({
+        open: true,
+        message: "Error decoding user ID:" + error,
+        severity: "error",
+      });
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     }
   };
 
@@ -67,9 +58,15 @@ const ProfileView = () => {
       const userId = decodeUserId(encodedId);
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
-        throw new Error("No token found");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        return;
       }
 
       const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${userId}`;
@@ -85,8 +82,18 @@ const ProfileView = () => {
       } else if (response.data.role === "admin") {
         navigate("/manage_contracts");
       }
+
+      setSnackbar({
+        open: true,
+        message: "Successfully fetching user data " + response.data.username,
+        severity: "success",
+      });
     } catch (error) {
-      alert("Error fetching user data");
+      setSnackbar({
+        open: true,
+        message: "Error fetching user data",
+        severity: "error",
+      });
       console.error("Error fetching user data", error);
     }
   };
@@ -140,6 +147,27 @@ const ProfileView = () => {
 
   return (
     <Box sx={{ marginTop: 8 }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Box
         sx={{
           backgroundColor: "#222",
