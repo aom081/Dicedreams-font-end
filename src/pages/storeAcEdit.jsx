@@ -6,11 +6,19 @@ import {
   Button,
   Paper,
   TextField,
+  Snackbar,
+  Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import axios from "axios";
 import { format } from "date-fns";
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 
 const decodeId = (encodedId) => {
   encodedId = encodedId.replace(/-/g, "+").replace(/_/g, "/");
@@ -28,19 +36,32 @@ const EditActivity = () => {
     time_activity: "",
     status_post: "",
   });
-
   const [dragging, setDragging] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    severity: "success",
+    message: "",
+  });
+
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
   const getStoreAcId = async (postId) => {
     try {
       const token = localStorage.getItem("access_token");
-
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          severity: "error",
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
@@ -62,17 +83,23 @@ const EditActivity = () => {
         status_post: response.data.status_post,
       });
       setImagePreview(response.data.post_activity_image);
-      console.log("StoreAc data fetched successfully", response.data);
+
+      setSnackbar({
+        open: true,
+        message: "Successfully fetching Store Activity data ",
+      });
     } catch (error) {
-      alert("Error fetching StoreAc data  " + error);
-      console.error("Error fetching StoreAc data", error);
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message: "Error fetching StoreAc data " + error,
+      });
     }
   };
 
   useEffect(() => {
     try {
       const postId = decodeId(encodedId);
-      console.log("Decoded Post Activity ID:", postId);
       getStoreAcId(postId);
     } catch (error) {
       console.error("Failed to decode the ID:", error);
@@ -139,30 +166,42 @@ const EditActivity = () => {
         base64Image = await convertImageToBase64(selectedFile);
       }
 
-      const formattedDateActivity = editableData.date_activity 
-      ? format(new Date(editableData.date_activity), "MM/dd/yyyy") 
-      : '';
+      const formattedDateActivity = editableData.date_activity
+        ? format(new Date(editableData.date_activity), "MM/dd/yyyy")
+        : "";
 
       const updatedData = {
         ...editableData,
-        date_activity: formattedDateActivity, 
+        date_activity: formattedDateActivity,
         ...(base64Image && { post_activity_image: base64Image }),
       };
 
-      console.log("updatedData==>", updatedData);
-
-      const response = await axios.put(url, updatedData, {
+      await axios.put(url, updatedData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      alert("Changes saved successfully!", response.data);
-      navigate("/store");
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message: "Changes saved successfully!",
+      });
+      setTimeout(() => {
+        navigate("/store");
+      }, 2000);
     } catch (error) {
       console.error("Failed to save changes:", error);
-      alert("Failed to save changes");
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message: "Failed to save changes",
+      });
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (!post) {
@@ -170,7 +209,28 @@ const EditActivity = () => {
   }
 
   return (
-    <Box sx={{ padding: 4 }}>
+    <Box sx={{ padding: 8 }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Paper elevation={3} sx={{ padding: 3 }}>
         <Typography variant="h4" gutterBottom>
           Edit Activity

@@ -7,15 +7,22 @@ import {
   Grid,
   Button,
   LinearProgress,
+  Snackbar,
+  Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import UploadIcon from "@mui/icons-material/UploadFile";
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-
 
 const StoreAc = () => {
   const [acName, setAcName] = useState("");
@@ -28,8 +35,24 @@ const StoreAc = () => {
   const fileInputRef = useRef(null);
   const [store, setstore] = useState(null);
 
-  const navigate = useNavigate();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // "success" or "error"
+  });
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const navigate = useNavigate();
 
   const handleDateChange = (newValue) => setEventDate(newValue);
   const handleTimeChange = (newValue) => setEventTime(newValue);
@@ -43,8 +66,14 @@ const StoreAc = () => {
       console.log("getStore userId-->", userId);
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
         throw new Error("No token found");
       }
 
@@ -62,10 +91,12 @@ const StoreAc = () => {
 
       const storeData = response.data;
       setstore(storeData);
-      console.log("response",response)
-
+      console.log("response", response);
     } catch (error) {
-      alert("Error fetching store data  " + error.response.data.error.message);
+      showSnackbar(
+        "Error fetching store data  " + error.response.data.error.message,
+        "error"
+      );
       console.error("Error fetching store data", error);
     }
   };
@@ -120,7 +151,10 @@ const StoreAc = () => {
 
   const handleSave = async () => {
     if (!acName || !acDetail || !eventDate || !eventTime) {
-      alert("Please fill all fields and select a file before saving.");
+      showSnackbar(
+        "Please fill all fields and select a file before saving.",
+        "error"
+      );
       return;
     }
 
@@ -152,8 +186,15 @@ const StoreAc = () => {
       const token = localStorage.getItem("access_token");
 
       if (!token) {
-        alert("No token found. Please login.");
-        return;
+        setSnackbar({
+          open: true,
+          message: "กรุณาลอกอินใหม่อีกครั้ง",
+          severity: "error",
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        throw new Error("No token found");
       }
 
       const formData = {
@@ -166,8 +207,8 @@ const StoreAc = () => {
         post_activity_image: base64Image,
         store_id: user_id,
       };
-      
-      console.log("form--->",formData)
+
+      console.log("form--->", formData);
 
       const response = await axios.post(
         `https://dicedreams-backend-deploy-to-render.onrender.com/api/postActivity`,
@@ -181,12 +222,16 @@ const StoreAc = () => {
       );
 
       console.log("File uploaded and user updated successfully", response.data);
-      alert("File uploaded and activity saved successfully.");
-      navigate("/store");
+      showSnackbar("File uploaded and activity saved successfully.");
+      setTimeout(() => {
+        navigate("/store");
+      }, 2000);
     } catch (error) {
-      alert("Error Post Activity  " + error);
-      console.error("Error Post Activity", error);      
-      navigate("/store");
+      showSnackbar("Error Post Activity  " + error.message, "error");
+      console.error("Error Post Activity", error);
+      setTimeout(() => {
+        navigate("/store");
+      }, 2000);
     }
   };
 
@@ -196,6 +241,27 @@ const StoreAc = () => {
 
   return (
     <Box sx={{ marginTop: 8 }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Box
         sx={{
           backgroundColor: "red",
@@ -323,13 +389,17 @@ const StoreAc = () => {
                 />
               </Grid>
 
-              {/* Event Time */}
-              {/* Event Time */}
+              {/* Event Time - Updated to Clock View */}
               <Grid item xs={6}>
                 <TimePicker
                   label="Select Time of Event"
                   value={eventTime}
                   onChange={handleTimeChange}
+                  viewRenderers={{
+                    hours: renderTimeViewClock,
+                    minutes: renderTimeViewClock,
+                    seconds: renderTimeViewClock,
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -344,6 +414,8 @@ const StoreAc = () => {
                         },
                         "& .MuiInputBase-input": { color: "white" },
                       }}
+                      inputProps={{ "data-testid": "time-picker" }}
+                      id="time-picker"
                     />
                   )}
                 />

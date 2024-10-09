@@ -10,6 +10,14 @@ import {
   CircularProgress,
   LinearProgress,
   MenuItem,
+  Snackbar,
+  Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText ,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -43,6 +51,35 @@ const ProfileEdit = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // "success" or "error"
+  });
+  
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+  
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+  
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [handleConfirmAction, setHandleConfirmAction] = useState(null);
+
+  const handleOpenConfirm = (action) => {
+    setHandleConfirmAction(() => action);
+    setConfirmOpen(true);
+  };
+
+  const handleCloseConfirm = () => setConfirmOpen(false);
+
   const fileInputRef = useRef(null);
 
   const updateUser = async () => {
@@ -53,9 +90,12 @@ const ProfileEdit = () => {
       const token = localStorage.getItem("access_token");
       const user_id = localStorage.getItem("users_id");
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
-        throw new Error("No token found");
+        showSnackbar("กรุณาลอกอินใหม่อีกครั้ง", "error");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        return;
       }
 
       const updatedUserData = {
@@ -84,10 +124,12 @@ const ProfileEdit = () => {
 
       console.log("User updated successfully", response.data);
 
-      window.alert("User updated successfully!");
-      navigate("/profile");
+      showSnackbar("User updated successfully!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, 2000);
     } catch (error) {
-      window.alert("Failed to update user. Please try again.");
+      showSnackbar("Failed to update user. Please try again.", "error");
       console.error("Error updating user", error);
     }
   };
@@ -116,7 +158,7 @@ const ProfileEdit = () => {
     setShowUploadBar(true);
 
     if (file.size > 3000000) {
-      alert("ขนาดไฟล์เกิน 3 MB");
+      showSnackbar("ขนาดไฟล์เกิน 3 MB", "error");
       setUploading(false);
       return;
     }
@@ -130,7 +172,7 @@ const ProfileEdit = () => {
         "image/gif",
       ].includes(file.type)
     ) {
-      alert("กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ");
+      showSnackbar("กรุณาเลือกไฟล์ตามนามสกุลที่ระบุ", "error");
       setUploading(false);
       return;
     }
@@ -139,9 +181,12 @@ const ProfileEdit = () => {
       const user_id = localStorage.getItem("users_id");
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
-        throw new Error("No token found");
+        showSnackbar("กรุณาลอกอินใหม่อีกครั้ง", "error");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        return;
       }
 
       const base64Image = await convertImageToBase64(file);
@@ -188,7 +233,10 @@ const ProfileEdit = () => {
       }));
 
       console.log("File uploaded and user updated successfully", response.data);
-      console.log("Uploaded Image URL:-->", uploadedImageUrl);
+      // console.log("Uploaded Image URL:-->", uploadedImageUrl);
+
+      showSnackbar("File uploaded and user updated successfully.");
+
 
       // Wait for 2 seconds before clearing the upload progress and calling getUser
       setTimeout(() => {
@@ -200,6 +248,8 @@ const ProfileEdit = () => {
       setUploadProgress(0);
       setUploadError("File upload failed");
       console.error("Error uploading file", error);
+      showSnackbar("Error uploading file", "error");
+
     }
   };
 
@@ -234,9 +284,12 @@ const ProfileEdit = () => {
       const user_id = localStorage.getItem("users_id");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
-        navigate("/");
-        throw new Error("No token found");
+        showSnackbar("กรุณาลอกอินใหม่อีกครั้ง", "error");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+        return;
       }
       const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${user_id}`;
       const response = await axios.get(url, {
@@ -253,18 +306,19 @@ const ProfileEdit = () => {
       setEmail(response.data.email);
       setGender(response.data.gender);
 
-
-      
       const userBirthday = new Date(response.data.birthday);
       const cutoffDate = new Date("1900-01-01");
 
       if (userBirthday < cutoffDate) {
-        alert("ปีเกิดน้อยกว่าปี 1900 กรุณากรอกวันเกิดจริง");
+        showSnackbar("ปีเกิดน้อยกว่าปี 1900 กรุณากรอกวันเกิดจริง", "error");
       }
       setBirthday(dayjs(response.data.birthday));
       console.log("User data fetched successfully", response.data);
+
+      showSnackbar("User data fetched successfully");
+
     } catch (error) {
-      alert("Error fetching user data");
+      showSnackbar("Error fetching user data", "error");
       console.error("Error fetching user data", error);
     }
   };
@@ -293,6 +347,48 @@ const ProfileEdit = () => {
 
   return (
     <Box>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        id="post-snackbar"
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+          id="post-alert"
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmOpen} onClose={handleCloseConfirm}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to perform this action?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirm}>Cancel</Button>
+          <Button
+            onClick={() => {
+              handleConfirmAction();
+              handleCloseConfirm();
+            }}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box
         sx={{
           padding: 3,

@@ -15,7 +15,15 @@ import {
   Toolbar,
   IconButton,
   Typography,
-  TextField, 
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Snackbar,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +31,15 @@ import axios from "axios";
 
 const Admin = () => {
   const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,7 +48,7 @@ const Admin = () => {
       const token = localStorage.getItem("access_token");
 
       if (!token) {
-        alert("กรุณาลอกอินใหม่อีกครั้ง");
+        showSnackbar("กรุณาลอกอินใหม่อีกครั้ง", "error");
         navigate("/");
         throw new Error("No token found");
       }
@@ -45,13 +61,13 @@ const Admin = () => {
           },
         });
         if (response.data.role !== "admin") {
-          alert("ไม่สามารถใช้งานส่วนนี้ได้");
+          showSnackbar("ไม่สามารถใช้งานส่วนนี้ได้", "error");
           navigate("/");
         } else {
           fetchUsers();
         }
       } catch (error) {
-        alert("Error fetching users");
+        showSnackbar("Error fetching users", "error");
         console.error("Error fetching users:", error);
       }
     };
@@ -65,7 +81,7 @@ const Admin = () => {
         setUsers(data);
         console.log(data);
       } catch (error) {
-        alert("Error fetching users");
+        showSnackbar("Error fetching users", "error");
         console.error("Error fetching users:", error);
       }
     };
@@ -73,41 +89,49 @@ const Admin = () => {
     CheckUsers();
   }, []);
 
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleHomeClick = () => {
     navigate("/");
   };
 
-  const deluser = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
-
-    if (!confirmDelete) {
-      return;
-    }
-
+  const deluser = async () => {
     const token = localStorage.getItem("access_token");
 
     if (!token) {
-      alert("กรุณาลอกอินใหม่อีกครั้ง");
+      showSnackbar("กรุณาลอกอินใหม่อีกครั้ง", "error");
       navigate("/");
       throw new Error("No token found");
     }
 
     try {
-      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${id}`;
+      const url = `https://dicedreams-backend-deploy-to-render.onrender.com/api/users/${userToDelete}`;
       const response = await axios.delete(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       console.log(response.data);
-      alert("User deleted successfully");
-      window.location.reload();
+      showSnackbar("User deleted successfully", "success");
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (error) {
-      alert("Error deleting user");
+      showSnackbar("Error deleting user", "error");
       console.error("Error deleting user:", error.response.data.error);
     }
+    setOpenConfirmDialog(false);
+  };
+
+  const handleDeleteClick = (id) => {
+    setUserToDelete(id);
+    setOpenConfirmDialog(true); 
   };
 
   const filteredUsers = users.filter((user) => {
@@ -147,7 +171,7 @@ const Admin = () => {
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ width: "300px" }} 
+            sx={{ width: "300px" }}
           />
         </Box>
 
@@ -186,7 +210,7 @@ const Admin = () => {
                       variant="outlined"
                       color="secondary"
                       sx={{ marginLeft: 1 }}
-                      onClick={() => deluser(user.users_id)}
+                      onClick={() => handleDeleteClick(user.users_id)}
                     >
                       Delete
                     </Button>
@@ -197,6 +221,47 @@ const Admin = () => {
           </Table>
         </TableContainer>
       </Box>
+
+      {/* Snackbar for alerts */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ width: "100%" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "80%", fontSize: "1rem" }}
+        >
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {snackbar.severity === "error" ? "Error" : "Success"}
+          </AlertTitle>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation dialog */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this user?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirmDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={deluser} color="secondary">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
