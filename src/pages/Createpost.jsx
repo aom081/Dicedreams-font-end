@@ -288,8 +288,8 @@ const CreatePost = () => {
               onChange={(event) => {
                 const parsedValue = parseInt(event.target.value);
                 if (isNaN(parsedValue) || parsedValue <= 0) {
-                  setAlertMessage({ open: true, message: 'กรุณากรอกจำนวนคนที่ถูกต้อง', severity: 'error' });
-                  setNumberOfPlayers(0); // Optionally reset the value to 0 or handle differently
+                  setAlertMessage({ open: true, message: 'Please enter a valid number of people', severity: 'error' });
+                  setNumberOfPlayers(0); // Reset the value to 0 or handle differently
                 } else {
                   setAlertMessage({ open: false, message: '', severity: '' });
                   setNumberOfPlayers(parsedValue);
@@ -305,6 +305,7 @@ const CreatePost = () => {
               <MenuItem value="">
                 Select number of people
               </MenuItem>
+              {/* For easier testing, provide specific predefined options */}
               {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
                 <MenuItem key={num} value={num.toString()}>
                   {num}
