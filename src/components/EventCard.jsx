@@ -190,7 +190,7 @@ function EventCard(props) {
             />
             <CardMedia
                 component="img"
-                height="194"
+                sx={{ height: 'auto', maxHeight: 500, width: '100%', objectFit: 'cover' }}  // Limit height and ensure it scales properly
                 image={image || 'https://via.placeholder.com/150'}
                 alt={nameGames || 'No game image'}
                 id={`event-image-${eventId}`}

@@ -282,12 +282,11 @@ const CreatePost = () => {
               </Stack>
             </LocalizationProvider>
 
-            <Autocomplete
+            <Select
               fullWidth
-              freeSolo
               value={numberOfPlayers ? numberOfPlayers.toString() : ''} // Ensures the value is a string for display
-              onInputChange={(event, newInputValue) => {
-                const parsedValue = parseInt(newInputValue);
+              onChange={(event) => {
+                const parsedValue = parseInt(event.target.value);
                 if (isNaN(parsedValue) || parsedValue <= 0) {
                   setAlertMessage({ open: true, message: 'กรุณากรอกจำนวนคนที่ถูกต้อง', severity: 'error' });
                   setNumberOfPlayers(0); // Optionally reset the value to 0 or handle differently
@@ -296,24 +295,22 @@ const CreatePost = () => {
                   setNumberOfPlayers(parsedValue);
                 }
               }}
-              options={[2, 3, 4, 5, 6, 7, 8].map((num) => num.toString())} // Options for predefined numbers
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Number of people"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                  inputProps={{
-                    ...params.inputProps,
-                    'data-testid': 'num-people-select',
-                    id: 'num-people-select',
-                    inputMode: 'numeric', // Ensures only numeric input on mobile
-                    pattern: '[0-9]*', // Ensures only numeric values are accepted
-                  }}
-                />
-              )}
-              getOptionLabel={(option) => option} // Display the value as a string
-            />
+              displayEmpty
+              sx={{ mb: 2 }}
+              inputProps={{
+                'data-testid': 'num-people-select',
+                id: 'num-people-select',
+              }}
+            >
+              <MenuItem value="">
+                Select number of people
+              </MenuItem>
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
+                <MenuItem key={num} value={num.toString()}>
+                  {num}
+                </MenuItem>
+              ))}
+            </Select>
 
             <Button
               variant="contained"
