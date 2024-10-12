@@ -84,12 +84,16 @@ const Chat = ({ userId, username, post_games_id }) => {
     };
 
     return (
-        <Box sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
-            <Typography variant="h5" gutterBottom>Chat</Typography>
-            <Box sx={{ height: 300, overflowY: 'auto', backgroundColor: '#333', padding: 2, borderRadius: 1 }}>
+        <Box id="chat-container" sx={{ marginTop: 4, padding: 3, backgroundColor: '#424242', color: 'white' }}>
+            <Typography id="chat-title" variant="h5" gutterBottom>Chat</Typography>
+            <Box
+                id="chat-messages-box"
+                sx={{ height: 300, overflowY: 'auto', backgroundColor: '#333', padding: 2, borderRadius: 1 }}
+            >
                 {messages.length > 0 ? (
                     messages.map((msg) => (
                         <Box
+                            id={`message-${msg.chat_id}`}
                             key={msg.chat_id}
                             sx={{
                                 backgroundColor: msg.user_id === userId ? '#3f51b5' : '#757575',
@@ -105,22 +109,30 @@ const Chat = ({ userId, username, post_games_id }) => {
                             }}
                         >
                             <Avatar
+                                id={`avatar-${msg.chat_id}`}
                                 alt={msg.user?.username || 'Anonymous'}
                                 src={msg.user?.user_image || '/default-avatar.png'}
                                 sx={{ marginRight: 1 }}
                             />
-                            <Box>
-                                <Typography variant="subtitle2">
+                            <Box id={`message-content-${msg.chat_id}`}>
+                                <Typography id={`message-username-${msg.chat_id}`} variant="subtitle2">
                                     {msg.user?.username || 'Anonymous'}
-                                    <Typography variant="caption" sx={{ marginLeft: 1, fontSize: '0.8rem' }}>
+                                    <Typography
+                                        id={`message-time-${msg.chat_id}`}
+                                        variant="caption"
+                                        sx={{ marginLeft: 1, fontSize: '0.8rem' }}
+                                    >
                                         {msg.datetime_chat}
                                     </Typography>
                                 </Typography>
-                                <Typography variant="body2">{msg.message}</Typography>
+                                <Typography id={`message-text-${msg.chat_id}`} variant="body2">
+                                    {msg.message}
+                                </Typography>
                             </Box>
                             {msg.user_id === userId && (
                                 <>
                                     <IconButton
+                                        id={`message-menu-icon-${msg.chat_id}`}
                                         className="message-menu-icon"
                                         aria-label="settings"
                                         onClick={(event) => handleMenuOpen(event, msg)}
@@ -129,24 +141,26 @@ const Chat = ({ userId, username, post_games_id }) => {
                                         <MoreVertIcon />
                                     </IconButton>
                                     <Menu
+                                        id={`message-menu-${msg.chat_id}`}
                                         anchorEl={anchorEl}
                                         open={Boolean(anchorEl) && currentMessage?.chat_id === msg.chat_id}
                                         onClose={handleMenuClose}
                                     >
-                                        <MenuItem onClick={() => handleEditMessage(msg)}>Edit</MenuItem>
-                                        <MenuItem onClick={() => handleDeleteMessage(msg.chat_id)}>Delete</MenuItem>
+                                        <MenuItem id={`edit-message-${msg.chat_id}`} onClick={() => handleEditMessage(msg)}>Edit</MenuItem>
+                                        <MenuItem id={`delete-message-${msg.chat_id}`} onClick={() => handleDeleteMessage(msg.chat_id)}>Delete</MenuItem>
                                     </Menu>
                                 </>
                             )}
                         </Box>
                     ))
                 ) : (
-                    <Typography variant="body2">ยังไม่มีข้อความ มาเริ่มการสนทนา!</Typography>
+                    <Typography id="no-messages-text" variant="body2">ยังไม่มีข้อความ มาเริ่มการสนทนา!</Typography>
                 )}
-                <div ref={messagesEndRef} />
+                <div id="messages-end" ref={messagesEndRef} />
             </Box>
 
             <TextField
+                id="message-input"
                 label="Enter message"
                 variant="outlined"
                 size="small"
@@ -162,20 +176,56 @@ const Chat = ({ userId, username, post_games_id }) => {
                 sx={{ marginTop: 2, backgroundColor: 'white', borderRadius: 1 }}
                 InputProps={{ style: { color: 'black' } }}
             />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 1 }}>
+            <Box id="send-button-container" sx={{ display: 'flex', marginTop: 1 }}>
                 {editingMessage ? (
                     <>
-                        <Button variant="contained" color="primary" onClick={sendMessage}>Update</Button>
-                        <Button variant="contained" color="secondary" onClick={cancelEdit} sx={{ marginLeft: 1 }}>Cancel</Button>
+                        <Button
+                            id="update-message-button"
+                            variant="contained"
+                            sx={{
+                                backgroundColor: 'yellow',
+                                color: 'black',
+                                '&:hover': { backgroundColor: 'gold' }, // Slightly darker on hover
+                            }}
+                            onClick={sendMessage}
+                        >
+                            Update
+                        </Button>
+
+                        <Button
+                            id="cancel-edit-button"
+                            variant="outlined" // Use outlined to make it look transparent
+                            sx={{
+                                color: 'primary.main', // Text is the primary theme color
+                                borderColor: 'primary.main', // Border is the primary theme color
+                                backgroundColor: 'transparent',
+                                '&:hover': { backgroundColor: 'rgba(0, 0, 255, 0.1)' }, // Light blue on hover for effect
+                                marginLeft: 1,
+                            }}
+                            onClick={cancelEdit}
+                        >
+                            Cancel
+                        </Button>
                     </>
                 ) : (
-                    <Button variant="contained" color="primary" onClick={sendMessage}>Send</Button>
+                    <Button
+                        id="send-message-button"
+                        variant="contained"
+                        sx={{
+                            backgroundColor: 'crimson',
+                            color: 'white'
+                            , '&:hover': { backgroundColor: 'darkred' }
+                        }}
+                        onClick={sendMessage}
+                    >
+                        Send
+                    </Button>
                 )}
             </Box>
 
-            <Snackbar open={!!errorMessage} autoHideDuration={6000} onClose={() => setErrorMessage('')}>
-                <Alert severity="error" onClose={() => setErrorMessage('')}>
-                    <AlertTitle>Error</AlertTitle>
+            <Snackbar id="error-snackbar" open={!!errorMessage} autoHideDuration={6000} onClose={() => setErrorMessage('')}>
+                <Alert id="error-alert" severity="error" onClose={() => setErrorMessage('')}>
+                    <AlertTitle id="error-alert-title">Error</AlertTitle>
                     {errorMessage}
                 </Alert>
             </Snackbar>
