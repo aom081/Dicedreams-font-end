@@ -56,7 +56,7 @@ function EventCard(props) {
             });
             setAlertMessage({
                 open: true,
-                message: 'กิจกรรมนี้ถูกทำเครื่องหมายว่าไม่ได้ใช้งานเรียบร้อยแล้ว',
+                message: 'สิ้นสุดการโพสต์เรียบร้อยแล้ว',
                 severity: 'success',
             });
             setTimeout(() => {
