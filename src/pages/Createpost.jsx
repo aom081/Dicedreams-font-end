@@ -145,13 +145,18 @@ const CreatePost = () => {
       }
 
       // Set a flag in sessionStorage indicating that a post was created
-      sessionStorage.setItem('postgameCreated', 'true'); // New line
+      sessionStorage.setItem('postgameCreated', 'true');
 
-      // ปิด Alert
-      setAlertMessage({ open: false, message: '', severity: '' });
+      // แสดงข้อความสำเร็จ
+      setAlertMessage({ open: true, message: 'สร้างโพสต์สำเร็จ!', severity: 'success' });
 
-      // Navigate back to the home page or another page
-      navigate('/');
+      // หน่วงเวลา 2 วินาทีเพื่อให้ผู้ใช้เห็นข้อความแจ้งเตือน
+      setTimeout(() => {
+        setAlertMessage({ open: false, message: '', severity: '' });
+
+        // Navigate to home page หลังจากหน่วงเวลา
+        navigate('/');
+      }, 2000); // หน่วงเวลา 2 วินาที
     } catch (error) {
       console.error('Error:', error);
       setAlertMessage({ open: true, message: 'เกิดข้อผิดพลาดในการสร้างโพสต์ โปรดลองอีกครั้ง', severity: 'error' });
@@ -400,13 +405,17 @@ const CreatePost = () => {
       </Card>
 
       <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         open={alertMessage.open}
-        autoHideDuration={6000}
+        autoHideDuration={60000}
         onClose={handleCloseAlert}
         id="alert-snackbar"
+        sx={{ width: "100%" }}
       >
         <Alert onClose={handleCloseAlert} severity={alertMessage.severity} id="alert">
-          <AlertTitle>{alertMessage.severity === 'error' ? 'Error' : 'Success'}</AlertTitle>
+          <AlertTitle sx={{ fontSize: "1.50rem" }}>
+            {alertMessage.severity === 'error' ? 'Error' : 'Success'}
+            </AlertTitle>
           {alertMessage.message}
         </Alert>
       </Snackbar>
