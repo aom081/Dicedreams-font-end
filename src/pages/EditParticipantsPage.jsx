@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Container, Paper, Typography, Button, Box, Avatar, Grid, Snackbar, Alert, AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { AuthContext } from '../Auth/AuthContext';
 
 const EditParticipantsPage = () => {
@@ -13,8 +13,8 @@ const EditParticipantsPage = () => {
     const [alertMessage, setAlertMessage] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [participantToRemove, setParticipantToRemove] = useState(null);
-    const [refuseDialogOpen, setRefuseDialogOpen] = useState(false);  // Added for refuse dialog
-    const [participantToRefuse, setParticipantToRefuse] = useState(null);  // Added to store participant to refuse
+    const [refuseDialogOpen, setRefuseDialogOpen] = useState(false);
+    const [participantToRefuse, setParticipantToRefuse] = useState(null);
 
     useEffect(() => {
         console.log("Fetching participants for post ID:", id); // Debugging: Fetch participants
@@ -163,23 +163,23 @@ const EditParticipantsPage = () => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ padding: '2rem 0', marginTop: '2rem' }}>
-            <Paper elevation={3} sx={{ padding: 4, backgroundColor: '#2c2c2c', color: 'white', position: 'relative' }}>
-                <Typography variant="h4" gutterBottom>
+        <Container maxWidth="md" sx={{ padding: '2rem 0', marginTop: '2rem' }} id="edit-participants-page">
+            <Paper elevation={3} sx={{ padding: 4, backgroundColor: '#2c2c2c', color: 'white', position: 'relative' }} id="participants-paper">
+                <Typography variant="h4" gutterBottom id="participants-title">
                     Manage Participants
                 </Typography>
 
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom id="pending-participants-title">
                     Pending Participants
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} id="pending-participants-grid">
                     {pendingParticipants.length > 0 ? pendingParticipants.map(participant => (
                         <Grid item xs={12} key={participant.part_Id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} id={`pending-participant-${participant.part_Id}`}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                                     <Avatar alt={`${participant?.user?.first_name} ${participant?.user?.last_name}`}
-                                    src={participant?.user?.user_image || "https://via.placeholder.com/40"} />
-                                    <Typography variant="body1" sx={{ marginLeft: 2 }}>
+                                        src={participant?.user?.user_image || "https://via.placeholder.com/40"} />
+                                    <Typography variant="body1" sx={{ marginLeft: 2 }} id={`pending-participant-name-${participant.part_Id}`}>
                                         {`${participant?.user?.first_name} ${participant?.user?.last_name}`}
                                     </Typography>
                                 </Box>
@@ -188,6 +188,7 @@ const EditParticipantsPage = () => {
                                         variant="contained"
                                         color="primary"
                                         onClick={() => handleApprove(participant.part_Id, participant.participant_apply_datetime, participant.participant_status, participant.user_id, participant.post_games_id)}
+                                        id={`approve-button-${participant.part_Id}`}
                                     >
                                         Approve
                                     </Button>
@@ -196,6 +197,7 @@ const EditParticipantsPage = () => {
                                         color="error"
                                         sx={{ marginLeft: 2 }}
                                         onClick={() => handleRefuseClick(participant)}
+                                        id={`refuse-button-${participant.part_Id}`}
                                     >
                                         Refuse
                                     </Button>
@@ -203,25 +205,25 @@ const EditParticipantsPage = () => {
                             </Box>
                         </Grid>
                     )) : (
-                        <Typography>No pending participants.</Typography>
+                        <Typography id="no-pending-participants">No pending participants.</Typography>
                     )}
                 </Grid>
 
-                <Box sx={{ marginTop: 2 }}>
-                    <Button variant="contained" onClick={handleApproveAll}>Approve All</Button>
+                <Box sx={{ marginTop: 2 }} id="approve-all-button-container">
+                    <Button variant="contained" onClick={handleApproveAll} id="approve-all-button">Approve All</Button>
                 </Box>
 
-                <Typography variant="h6" gutterBottom sx={{ marginTop: 4 }}>
+                <Typography variant="h6" gutterBottom sx={{ marginTop: 4 }} id="joined-participants-title">
                     Joined Participants
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={2} id="joined-participants-grid">
                     {joinedParticipants.length > 0 ? joinedParticipants.map(participant => (
                         <Grid item xs={12} key={participant.part_Id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} id={`joined-participant-${participant.part_Id}`}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                                     <Avatar alt={`${participant?.user?.first_name} ${participant?.user?.last_name}`}
                                         src={participant?.user?.user_image || "https://via.placeholder.com/40"} />
-                                    <Typography variant="body1" sx={{ marginLeft: 2 }}>
+                                    <Typography variant="body1" sx={{ marginLeft: 2 }} id={`joined-participant-name-${participant.part_Id}`}>
                                         {`${participant?.user?.first_name} ${participant?.user?.last_name}`}
                                     </Typography>
                                 </Box>
@@ -230,6 +232,7 @@ const EditParticipantsPage = () => {
                                         variant="contained"
                                         color="error"
                                         onClick={() => handleRemoveClick(participant)}
+                                        id={`remove-button-${participant.part_Id}`}
                                     >
                                         Remove
                                     </Button>
@@ -237,15 +240,15 @@ const EditParticipantsPage = () => {
                             </Box>
                         </Grid>
                     )) : (
-                        <Typography>No joined participants.</Typography>
+                        <Typography id="no-joined-participants">No joined participants.</Typography>
                     )}
                 </Grid>
 
-                <Box sx={{ marginTop: 2 }}>
-                    <Button variant="contained" color="error" onClick={handleRemoveAll}>Remove All</Button>
+                <Box sx={{ marginTop: 2 }} id="remove-all-button-container">
+                    <Button variant="contained" color="error" onClick={handleRemoveAll} id="remove-all-button">Remove All</Button>
                 </Box>
-                <Box sx={{ position: 'absolute', bottom: 16, right: 16 }}>
-                    <Button variant="contained" color="primary" onClick={() => navigate(`/events/${id }`)}>
+                <Box sx={{ position: 'absolute', bottom: 16, right: 16 }} id="return-button-container">
+                    <Button variant="contained" color="primary" onClick={() => navigate(`/events/${id}`)} id="return-button">
                         Return to Details Page
                     </Button>
                 </Box>
@@ -256,13 +259,15 @@ const EditParticipantsPage = () => {
                 open={alertMessage.open}
                 autoHideDuration={6000}
                 onClose={() => setAlertMessage({ ...alertMessage, open: false })}
+                id="alert-snackbar"
             >
                 <Alert
                     severity={alertMessage.severity}
                     onClose={() => setAlertMessage({ ...alertMessage, open: false })}
                     sx={{ width: "80%", fontSize: "1rem" }}
+                    id="alert"
                 >
-                    <AlertTitle sx={{ fontSize: "1.5rem" }}>
+                    <AlertTitle sx={{ fontSize: "1.5rem" }} id="alert-title">
                         {alertMessage.severity === "error" ? "Error" : "Success"}
                     </AlertTitle>
                     {alertMessage.message}
@@ -274,16 +279,17 @@ const EditParticipantsPage = () => {
                 open={refuseDialogOpen}
                 onClose={() => setRefuseDialogOpen(false)}
                 aria-labelledby="refuse-dialog-title"
+                id="refuse-dialog"
             >
                 <DialogTitle id="refuse-dialog-title">Refuse Participant</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                    <DialogContentText id="refuse-dialog-content">
                         คุณแน่ใจหรือไม่ว่าต้องการปฏิเสธผู้เข้าร่วมรายนี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setRefuseDialogOpen(false)}>ยกเลิก</Button>
-                    <Button onClick={handleRefuseConfirm} color="error">Refuse</Button>
+                    <Button onClick={() => setRefuseDialogOpen(false)} id="refuse-dialog-cancel-button">ยกเลิก</Button>
+                    <Button onClick={handleRefuseConfirm} color="error" id="refuse-dialog-confirm-button">Refuse</Button>
                 </DialogActions>
             </Dialog>
 
@@ -292,16 +298,17 @@ const EditParticipantsPage = () => {
                 open={confirmDialogOpen}
                 onClose={() => setConfirmDialogOpen(false)}
                 aria-labelledby="confirm-dialog-title"
+                id="confirm-dialog"
             >
                 <DialogTitle id="confirm-dialog-title">Remove Participant</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                    <DialogContentText id="confirm-dialog-content">
                         คุณแน่ใจหรือไม่ว่าต้องการลบผู้เข้าร่วมรายนี้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmDialogOpen(false)}>ยกเลิก</Button>
-                    <Button onClick={handleRemoveConfirm} color="error">Remove</Button>
+                    <Button onClick={() => setConfirmDialogOpen(false)} id="confirm-dialog-cancel-button">ยกเลิก</Button>
+                    <Button onClick={handleRemoveConfirm} color="error" id="confirm-dialog-confirm-button">Remove</Button>
                 </DialogActions>
             </Dialog>
         </Container>

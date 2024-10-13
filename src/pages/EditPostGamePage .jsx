@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert,AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    Container, Paper, Typography, Button, TextField, Box, Grid, useMediaQuery, Snackbar, Alert, AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { AuthContext } from '../Auth/AuthContext';
@@ -175,10 +175,10 @@ const EditPostGamePage = () => {
     return (
         <Container maxWidth="md" sx={{ padding: '2rem 0', marginTop: '2rem' }}>
             <Paper elevation={3} sx={{ padding: isMobile ? 2 : 5, marginTop: 4, backgroundColor: '#2c2c2c', color: 'white' }}>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h4" gutterBottom id="edit-post-title">
                     Edit Post
                 </Typography>
-                <form onSubmit={handleFormSubmit}>
+                <form onSubmit={handleFormSubmit} id="edit-post-form">
                     <Grid container spacing={isMobile ? 2 : 3}>
                         <Grid item xs={12}>
                             <TextField
@@ -188,6 +188,7 @@ const EditPostGamePage = () => {
                                 value={event.name_games}
                                 onChange={handleInputChange}
                                 sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
+                                id="game-name-input"
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -198,6 +199,7 @@ const EditPostGamePage = () => {
                                 value={event.detail_post}
                                 onChange={handleInputChange}
                                 sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
+                                id="details-input"
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -212,6 +214,7 @@ const EditPostGamePage = () => {
                                     sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
                                     format="MMM-DD-YYYY"
                                     fullWidth
+                                    id="date-picker"
                                 />
                             </LocalizationProvider>
                         </Grid>
@@ -235,6 +238,7 @@ const EditPostGamePage = () => {
                                         '.MuiInputLabel-root': { color: 'white' },
                                     }}
                                     fullWidth
+                                    id="time-picker"
                                 />
                             </LocalizationProvider>
                         </Grid>
@@ -248,6 +252,7 @@ const EditPostGamePage = () => {
                                 sx={{ backgroundColor: '#1c1c1c', input: { color: 'white' } }}
                                 InputProps={{ inputProps: { min: 1 } }}
                                 required
+                                id="participants-input"
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -257,6 +262,7 @@ const EditPostGamePage = () => {
                                 startIcon={<CloudUploadIcon />}
                                 onClick={() => fileInputRef.current.click()}
                                 sx={{ marginBottom: 2 }}
+                                id="upload-image-button"
                             >
                                 Upload New Image
                             </Button>
@@ -266,18 +272,20 @@ const EditPostGamePage = () => {
                                 style={{ display: 'none' }}
                                 ref={fileInputRef}
                                 onChange={handleImageChange}
+                                id="image-upload-input"
                             />
                             {previewImage && (
                                 <img
                                     src={previewImage}
                                     alt="Preview"
                                     style={{ maxWidth: '100%', marginBottom: '10px' }}
+                                    id="image-preview"
                                 />
                             )}
                         </Grid>
                     </Grid>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }} id="edit-post-buttons">
                         <Button
                             variant="contained"
                             sx={{
@@ -286,6 +294,7 @@ const EditPostGamePage = () => {
                                 '&:hover': { backgroundColor: 'black', color: 'yellow' },
                             }}
                             type="submit"
+                            id="save-changes-button"
                         >
                             Save Changes
                         </Button>
@@ -298,6 +307,7 @@ const EditPostGamePage = () => {
                                 '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
                             }}
                             onClick={handleCancelClick}
+                            id="cancel-button"
                         >
                             Cancel
                         </Button>
@@ -311,6 +321,7 @@ const EditPostGamePage = () => {
                 onClose={handleCloseDialog}
                 aria-labelledby="cancel-dialog-title"
                 aria-describedby="cancel-dialog-description"
+                id="cancel-dialog"
             >
                 <DialogTitle id="cancel-dialog-title">Cancel Edits</DialogTitle>
                 <DialogContent>
@@ -319,10 +330,10 @@ const EditPostGamePage = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">
+                    <Button onClick={handleCloseDialog} color="primary" id="continue-editing-button">
                         แก้ไขต่อไป
                     </Button>
-                    <Button onClick={handleConfirmCancel} color="error" autoFocus>
+                    <Button onClick={handleConfirmCancel} color="error" autoFocus id="confirm-cancel-button">
                         ยกเลิกการเปลี่ยนแปลง
                     </Button>
                 </DialogActions>
