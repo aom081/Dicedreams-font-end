@@ -41,7 +41,19 @@ function RecipeReviewCard() {
     localStorage.setItem('filter', newFilter); // Save filter state to localStorage
   };
 
-  const filteredEvents = filter === 'old' ? [...events].reverse() : events;
+  // Sort the events based on creation date and filter type
+  const filteredEvents = [...events].sort((a, b) => {
+    const dateA = new Date(a.creation_date);
+    const dateB = new Date(b.creation_date);
+
+    if (filter === 'new') {
+      // Sort from newest to oldest
+      return dateB - dateA;
+    } else {
+      // Sort from oldest to newest
+      return dateA - dateB;
+    }
+  });
 
   return (
     <Container sx={{ padding: '2rem 0' }}>
@@ -91,3 +103,4 @@ function RecipeReviewCard() {
 }
 
 export default RecipeReviewCard;
+
