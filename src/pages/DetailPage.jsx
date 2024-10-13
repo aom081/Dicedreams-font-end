@@ -302,7 +302,7 @@ const DetailsPage = () => {
             {/* Snackbar for success/error messages */}
             <Snackbar
                 open={alertMessage.open}
-                autoHideDuration={6000}
+                autoHideDuration={2000}
                 onClose={() => setAlertMessage({ ...alertMessage, open: false })}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >

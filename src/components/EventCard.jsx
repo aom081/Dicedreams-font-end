@@ -59,10 +59,11 @@ function EventCard(props) {
                 message: 'สิ้นสุดการโพสต์เรียบร้อยแล้ว',
                 severity: 'success',
             });
+
             setTimeout(() => {
                 setAlertMessage({ open: false, message: '', severity: 'success' });
-                navigate('/');
-            }, 500);
+                window.location.reload(); // ทำการรีเฟรชหน้าใหม่
+            }, 2000); // เพิ่มเวลาแสดงแจ้งเตือนเป็น 2000 ms หรือ 2 วินาที
         } catch (error) {
             console.error('Failed to delete post', error);
             setAlertMessage({
@@ -70,9 +71,10 @@ function EventCard(props) {
                 message: 'ลบโพสต์ไม่สำเร็จ โปรดลองอีกครั้ง',
                 severity: 'error',
             });
+
             setTimeout(() => {
                 setAlertMessage({ open: false, message: '', severity: 'error' });
-            }, 500);
+            }, 2000); // เพิ่มเวลาแสดงแจ้งเตือนสำหรับ error เป็น 2000 ms
         }
     };
 
@@ -280,7 +282,7 @@ function EventCard(props) {
             </CardActions>
             <Snackbar
                 open={alertMessage.open}
-                autoHideDuration={6000}
+                autoHideDuration={2000}
                 onClose={handleCloseAlert}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
