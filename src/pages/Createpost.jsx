@@ -84,6 +84,7 @@ const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ตรวจสอบข้อมูลฟอร์มที่ต้องกรอก
     if (!formValues.name_games && gameOption !== 'Other') {
       setAlertMessage({ open: true, message: 'ไม่กรอก Game name', severity: 'error' });
       return;
@@ -143,7 +144,13 @@ const CreatePost = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
+      // Set a flag in sessionStorage indicating that a post was created
+      sessionStorage.setItem('postgameCreated', 'true'); // New line
+
+      // ปิด Alert
       setAlertMessage({ open: false, message: '', severity: '' });
+
+      // Navigate back to the home page or another page
       navigate('/');
     } catch (error) {
       console.error('Error:', error);
