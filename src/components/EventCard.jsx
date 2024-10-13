@@ -289,23 +289,25 @@ function EventCard(props) {
                     {alertMessage.message}
                 </Alert>
             </Snackbar>
+            
+            {/* End Post Confirmation Dialog */}
             <Dialog
                 open={openConfirmDialog}
                 onClose={handleCancelEndPost}
                 aria-labelledby={`confirm-end-dialog-${eventId}`}
             >
-                <DialogTitle id={`confirm-end-dialog-title-${eventId}`}>Confirm End Post</DialogTitle>
+                <DialogTitle id="confirm-end-dialog-title">Confirm End Post</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to mark this post as ended? This action cannot be undone.
+                    <DialogContentText id="confirm-end-dialog-description">
+                        คุณแน่ใจหรือไม่ว่าต้องการจบโพสต์นี้? การกระทำนี้ไม่สามารถยกเลิกได้
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancelEndPost} color="primary">
-                        Cancel
+                        ยกเลิก
                     </Button>
-                    <Button onClick={handleEndPost} color="secondary">
-                        Confirm
+                    <Button onClick={handleEndPost} color="error">
+                        End Post
                     </Button>
                 </DialogActions>
             </Dialog>
