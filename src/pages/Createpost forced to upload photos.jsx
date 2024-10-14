@@ -101,6 +101,10 @@ const CreatePost = () => {
       setAlertMessage({ open: true, message: 'ไม่กรอก Number of people', severity: 'error' });
       return;
     }
+    if (!formValues.games_image) {
+      setAlertMessage({ open: true, message: 'ไม่อัพโหลด Image', severity: 'error' });
+      return;
+    }
 
     const currentDateTime = dayjs();
     const selectedDateTime = dayjs(selectedDate).hour(timeValue.hour()).minute(timeValue.minute());
@@ -119,7 +123,7 @@ const CreatePost = () => {
       num_people: numberOfPlayers,
       date_meet: formattedDate,
       time_meet: timeValue.format('HH:mm A'),
-      games_image: formValues.games_image || '', // Optional image
+      games_image: formValues.games_image,
       status_post: 'active',
       users_id: userId,
       username,
@@ -158,7 +162,6 @@ const CreatePost = () => {
       setAlertMessage({ open: true, message: 'เกิดข้อผิดพลาดในการสร้างโพสต์ โปรดลองอีกครั้ง', severity: 'error' });
     }
   };
-
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
