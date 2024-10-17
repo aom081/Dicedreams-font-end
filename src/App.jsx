@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './Auth/AuthContext';
@@ -15,6 +14,7 @@ import Profile from './pages/Profile';
 import ProfileEdit from './pages/ProfileEdit';
 import Index from './pages/Index';
 import EditPostGamePage from './pages/EditPostGamePage ';
+import SearchResults from './components/SearchResults';
 
 const App = () => {
   return (
@@ -35,6 +35,7 @@ const App = () => {
             <Route path="profile/edit" element={<ProfileEdit />} />
             <Route path="index" element={<Index />} />
             <Route path="/edit-participants/:id" element={<EditParticipantsPage />} />
+            <Route path="/search-results" element={<SearchResults />} />
           </Route>
         </Routes>
       </Router>

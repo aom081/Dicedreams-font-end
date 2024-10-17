@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { TextField, Grid, Button, Box, Autocomplete } from '@mui/material';
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
+import { useNavigate } from 'react-router-dom';
 import { predefinedGames } from '../constants/gameList';
 
-const FilterComponentInNavBar = ({ onFilter }) => {
+const FilterComponentInNavBar = () => {
     const [namegame, setNamegame] = useState('');
     const [username, setUsername] = useState('');
     const [meetDate, setMeetDate] = useState(null);
@@ -11,8 +12,13 @@ const FilterComponentInNavBar = ({ onFilter }) => {
     const [numPeople, setNumPeople] = useState('');
     const [gameOption, setGameOption] = useState('');
 
+    const navigate = useNavigate(); // Use navigate hook
+
     const handleFilterSubmit = () => {
-        onFilter({ namegame, username, meetDate, meetTime, numPeople });
+        const filterData = { namegame, username, meetDate, meetTime, numPeople };
+
+        // Navigate to the SearchResults page with the filter data
+        navigate('/search-results', { state: { filterData } });
     };
 
     return (
@@ -22,41 +28,17 @@ const FilterComponentInNavBar = ({ onFilter }) => {
                     <Autocomplete
                         fullWidth
                         value={gameOption}
-                        onChange={(event, newValue) => {
-                            if (newValue === 'Other') {
-                                setGameOption('');
-                                setFormValues((prevValues) => ({
-                                    ...prevValues,
-                                    name_games: customGameName,
-                                }));
-                            } else {
-                                setGameOption(newValue || '');
-                                setFormValues((prevValues) => ({
-                                    ...prevValues,
-                                    name_games: newValue || '',
-                                }));
-                            }
-                        }}
-                        onInputChange={(event, newInputValue) => {
-                            setCustomGameName(newInputValue);
-                        }}
+                        onChange={(event, newValue) => setGameOption(newValue || '')}
                         options={predefinedGames}
                         freeSolo
                         renderInput={(params) => (
                             <TextField
                                 {...params}
-                                label="Select or enter a board game"
+                                label="Search for board games, users, or stores."
                                 variant="outlined"
                                 sx={{ mb: 2 }}
-                                inputProps={{
-                                    ...params.inputProps,
-                                    'data-testid': 'game-select',
-                                    id: 'game-select',
-                                }}
                             />
                         )}
-                        getOptionLabel={(option) => option || ''}
-                        id="game-autocomplete"
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>

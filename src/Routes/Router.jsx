@@ -15,9 +15,10 @@ import Index from '../pages/Index';
 import EditPostGamePage from "../pages/EditPostGamePage ";
 import Store from '../pages/store';
 import StoreAc from "../pages/storeActivity";
-import EditParticipantsPage from '../pages/EditParticipantsPage'; // Import the new component
+import EditParticipantsPage from '../pages/EditParticipantsPage';
 import Adm from "../pages/Admin";
-import AcEdit from "../pages/storeAcEdit"
+import AcEdit from "../pages/storeAcEdit";
+import SearchResults from "../components/SearchResults"; // Import SearchResults component
 
 const router = createBrowserRouter([
   {
@@ -81,7 +82,7 @@ const router = createBrowserRouter([
         element: <StoreAc />
       },
       {
-        path: "/edit-participants/:id", // New route for managing participants
+        path: "/edit-participants/:id",
         element: <EditParticipantsPage />
       },
       {
@@ -95,6 +96,10 @@ const router = createBrowserRouter([
       {
         path: "/profile/user/:encodedId",
         element: <ProfileView />
+      },
+      {
+        path: "/search-results",  // New route for search results
+        element: <SearchResults />
       }
     ]
   }

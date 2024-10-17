@@ -92,12 +92,6 @@ const Navbar = () => {
                     <ListItemText primary="Profile" />
                 </ListItem>
                 <Divider />
-                <ListItem>
-                    <Typography variant="h6" id="filter-events-title">Filter Events</Typography>
-                </ListItem>
-                <ListItem>
-                    {/* If you have other filter components, include them here */}
-                </ListItem>
             </List>
         </Box>
     );

@@ -134,7 +134,7 @@ const EditPostGamePage = () => {
 
             setAlertMessage({
                 open: true,
-                message: 'อัปเดตกิจกรรมสำเร็จแล้ว!',
+                message: 'แก้ไขโพสสำเร็จ!',
                 severity: 'success',
             });
 
