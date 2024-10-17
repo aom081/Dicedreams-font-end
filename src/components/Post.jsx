@@ -28,10 +28,10 @@ export default function Post() {
   return (
     <Box
       sx={{
-        minHeight: '40vh',
+        minHeight: '37vh',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'end',
         padding: '20px',
       }}
       id="post-container"
