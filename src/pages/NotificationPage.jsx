@@ -182,7 +182,16 @@ const NotificationPage = () => {
     };
 
     return (
-        <Box id="notification-page-container" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 12, minHeight: '80vh' }}>
+        <Box
+            id="notification-page-container"
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: { xs: 2, sm: 4, md: 6, lg: 12 }, // Responsive padding
+                minHeight: '80vh',
+            }}
+        >
             <Box
                 id="notification-box"
                 sx={{
@@ -191,13 +200,38 @@ const NotificationPage = () => {
                     backgroundColor: 'black',
                     color: 'white',
                     borderRadius: 2,
-                    padding: 3,
+                    padding: { xs: 2, sm: 3 }, // Responsive padding
                     textAlign: 'center',
                 }}
             >
-                <ButtonGroup id="tab-button-group" variant="text" color="primary" sx={{ marginBottom: 2 }}>
-                    <Button id="request-tab-button" onClick={() => setActiveTab('request')} sx={{ color: activeTab === 'request' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Request</Button>
-                    <Button id="notification-tab-button" onClick={() => setActiveTab('notification')} sx={{ color: activeTab === 'notification' ? 'red' : 'inherit', '&:hover': { color: 'red' } }}>Notification</Button>
+                <ButtonGroup
+                    id="tab-button-group"
+                    variant="text"
+                    color="primary"
+                    sx={{ marginBottom: 2 }}
+                >
+                    <Button
+                        id="request-tab-button"
+                        onClick={() => setActiveTab('request')}
+                        sx={{
+                            color: activeTab === 'request' ? 'red' : 'inherit',
+                            '&:hover': { color: 'red' },
+                            fontSize: { xs: '0.8rem', sm: '1rem' }, // Responsive font size
+                        }}
+                    >
+                        Request
+                    </Button>
+                    <Button
+                        id="notification-tab-button"
+                        onClick={() => setActiveTab('notification')}
+                        sx={{
+                            color: activeTab === 'notification' ? 'red' : 'inherit',
+                            '&:hover': { color: 'red' },
+                            fontSize: { xs: '0.8rem', sm: '1rem' }, // Responsive font size
+                        }}
+                    >
+                        Notification
+                    </Button>
                 </ButtonGroup>
 
                 {activeTab === 'notification' ? (
@@ -205,84 +239,98 @@ const NotificationPage = () => {
                         {notifications.length > 0 ? (
                             notifications.map((notification, index) => (
                                 <Box
+                                    key={index}
                                     id={`notification-content-${index}`}
                                     onClick={() => handleMarkAsReadAndNavigate(notification.notification_id, notification.data.post_games_id)}
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'column', // Vertical stacking
-                                        gap: 1, // Gap between sections
+                                        gap: 1,
                                         maxWidth: '100%',
-                                        padding: 2,
+                                        padding: { xs: 1, sm: 2 }, // Responsive padding
                                         borderRadius: 2,
-                                        backgroundColor: notification.read ? '#808080' : '#1976d2', // Different color for read vs unread
+                                        backgroundColor: notification.read ? '#808080' : '#1976d2',
                                         color: 'white',
                                         wordWrap: 'break-word',
                                         cursor: 'pointer',
-                                        marginBottom: 2 // Spacing between notifications
+                                        marginBottom: { xs: 1, sm: 2 }, // Responsive margin
                                     }}
                                 >
                                     {/* User and Game Info */}
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
                                         <Avatar src={notification.user_image} alt={`${notification.first_name} ${notification.last_name}`} />
-                                        <Typography id={`notification-text-${index}`} variant="body1" sx={{ fontWeight: 'bold' }}>
+                                        <Typography id={`notification-text-${index}`} variant="body1" sx={{ fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                             {`Game: ${notification.name_games} - User: ${notification.first_name} ${notification.last_name}`}
                                         </Typography>
                                     </Box>
 
                                     {/* Notification Message */}
-                                    <Typography id={`notification-message-${index}`} variant="body2" sx={{ color: 'lightgray' }}>
+                                    <Typography id={`notification-message-${index}`} variant="body2" sx={{ color: 'lightgray', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
                                         {`Message: ${notification.data?.message || 'No message'}`}
                                     </Typography>
 
                                     {/* Time Info */}
-                                    <Typography id={`notification-time-${index}`} variant="caption" display="block" sx={{ color: 'lightgray', textAlign: 'right' }}>
+                                    <Typography id={`notification-time-${index}`} variant="caption" display="block" sx={{ color: 'lightgray', textAlign: 'right', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                                         {`Time: ${new Date(notification.time).toLocaleString()}`}
                                     </Typography>
                                 </Box>
-
                             ))
                         ) : (
-                            <Typography id="no-notifications-text" variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
+                            <Typography id="no-notifications-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                 No notifications available.
                             </Typography>
                         )}
                     </Box>
                 ) : (
-                    <TableContainer id="requests-container" component={Paper} sx={{ backgroundColor: 'black' }}>
+                    <TableContainer id="requests-container" component={Paper} sx={{ backgroundColor: 'black', overflowX: 'auto' }}>
                         {requests.length > 0 ? (
                             <Table id="requests-table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell id="user-column-header" sx={{ color: 'white' }}>User</TableCell>
-                                        <TableCell id="game-column-header" sx={{ color: 'white' }}>Game</TableCell>
-                                        <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center' }}>participants</TableCell>
+                                        <TableCell id="user-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                            User
+                                        </TableCell>
+                                        <TableCell id="game-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                            Game
+                                        </TableCell>
+                                        <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                            Participants
+                                        </TableCell>
                                     </TableRow>
                                 </TableHead>
-                                <TableBody>
-                                    {requests.map((request, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell sx={{ color: 'white' }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Avatar src={request.user_image} alt={`${request.first_name} ${request.last_name}`} />
-                                                    {`${request.first_name} ${request.last_name}`}
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell sx={{ color: 'white' }}>{request.name_games}</TableCell>
-                                            <TableCell sx={{ textAlign: 'center' }}>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={() => navigate(`/edit-participants/${request.data.post_games_id}`)}
-                                                >
-                                                    View Participants
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
+                                    <TableBody>
+                                        {requests.map((request, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                                                        <Avatar src={request.user_image} alt={`${request.first_name} ${request.last_name}`} />
+                                                        <Box
+                                                            component="span"
+                                                            sx={{
+                                                                display: { xs: 'none', sm: 'inline' }, // Hide name on extra-small screens
+                                                            }}
+                                                        >
+                                                            {`${request.first_name} ${request.last_name}`}
+                                                        </Box>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>{request.name_games}</TableCell>
+                                                <TableCell sx={{ textAlign: 'center' }}>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        sx={{ fontSize: { xs: '0.7rem', sm: '0.9rem' } }} // Responsive font size
+                                                        onClick={() => navigate(`/edit-participants/${request.data.post_games_id}`)}
+                                                    >
+                                                        View Participants
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
                             </Table>
                         ) : (
-                            <Typography id="no-requests-text" variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
+                            <Typography id="no-requests-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                 No participation requests available.
                             </Typography>
                         )}
