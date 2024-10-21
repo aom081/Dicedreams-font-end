@@ -20,6 +20,7 @@ const NotificationPage = () => {
     const [requests, setRequests] = useState([]); // State for requests
     const [activeTab, setActiveTab] = useState('notification'); // State for active tab
     const [error, setError] = useState(null);
+    const [initialLoading, setInitialLoading] = useState(true); // Loading state for first time only
     const navigate = useNavigate();
 
     // Fetch User Details
@@ -84,6 +85,7 @@ const NotificationPage = () => {
         if (!accessToken) {
             console.error("Access token not found");
             setError("Access token not found");
+            setInitialLoading(false); // Stop loading if there's an error
             return;
         }
 
@@ -132,6 +134,8 @@ const NotificationPage = () => {
             }
         } catch (error) {
             setError("Error fetching notifications");
+        } finally {
+            setInitialLoading(false); // Set loading to false after first fetch completes
         }
     };
 
@@ -234,70 +238,75 @@ const NotificationPage = () => {
                     </Button>
                 </ButtonGroup>
 
-                {activeTab === 'notification' ? (
-                    <Box id="notifications-container">
-                        {notifications.length > 0 ? (
-                            notifications.map((notification, index) => (
-                                <Box
-                                    key={index}
-                                    id={`notification-content-${index}`}
-                                    onClick={() => handleMarkAsReadAndNavigate(notification.notification_id, notification.data.post_games_id)}
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column', // Vertical stacking
-                                        gap: 1,
-                                        maxWidth: '100%',
-                                        padding: { xs: 1, sm: 2 }, // Responsive padding
-                                        borderRadius: 2,
-                                        backgroundColor: notification.read ? '#808080' : '#1976d2',
-                                        color: 'white',
-                                        wordWrap: 'break-word',
-                                        cursor: 'pointer',
-                                        marginBottom: { xs: 1, sm: 2 }, // Responsive margin
-                                    }}
-                                >
-                                    {/* User and Game Info */}
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-                                        <Avatar src={notification.user_image} alt={`${notification.first_name} ${notification.last_name}`} />
-                                        <Typography id={`notification-text-${index}`} variant="body1" sx={{ fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                                            {`Game: ${notification.name_games} - User: ${notification.first_name} ${notification.last_name}`}
+                {initialLoading ? (
+                    <Typography id="loading-text" variant="body1" sx={{ color: 'white', marginBottom: 2 }}>
+                        Loading...
+                    </Typography>
+                ) : (
+                    activeTab === 'notification' ? (
+                        <Box id="notifications-container">
+                            {notifications.length > 0 ? (
+                                notifications.map((notification, index) => (
+                                    <Box
+                                        key={index}
+                                        id={`notification-content-${index}`}
+                                        onClick={() => handleMarkAsReadAndNavigate(notification.notification_id, notification.data.post_games_id)}
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column', // Vertical stacking
+                                            gap: 1,
+                                            maxWidth: '100%',
+                                            padding: { xs: 1, sm: 2 }, // Responsive padding
+                                            borderRadius: 2,
+                                            backgroundColor: notification.read ? '#808080' : '#1976d2',
+                                            color: 'white',
+                                            wordWrap: 'break-word',
+                                            cursor: 'pointer',
+                                            marginBottom: { xs: 1, sm: 2 }, // Responsive margin
+                                        }}
+                                    >
+                                        {/* User and Game Info */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                                            <Avatar src={notification.user_image} alt={`${notification.first_name} ${notification.last_name}`} />
+                                            <Typography id={`notification-text-${index}`} variant="body1" sx={{ fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                                {`Game: ${notification.name_games} - User: ${notification.first_name} ${notification.last_name}`}
+                                            </Typography>
+                                        </Box>
+
+                                        {/* Notification Message */}
+                                        <Typography id={`notification-message-${index}`} variant="body2" sx={{ color: 'lightgray', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+                                            {`Message: ${notification.data?.message || 'No message'}`}
+                                        </Typography>
+
+                                        {/* Time Info */}
+                                        <Typography id={`notification-time-${index}`} variant="caption" display="block" sx={{ color: 'lightgray', textAlign: 'right', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                                            {`Time: ${new Date(notification.time).toLocaleString()}`}
                                         </Typography>
                                     </Box>
-
-                                    {/* Notification Message */}
-                                    <Typography id={`notification-message-${index}`} variant="body2" sx={{ color: 'lightgray', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                                        {`Message: ${notification.data?.message || 'No message'}`}
-                                    </Typography>
-
-                                    {/* Time Info */}
-                                    <Typography id={`notification-time-${index}`} variant="caption" display="block" sx={{ color: 'lightgray', textAlign: 'right', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
-                                        {`Time: ${new Date(notification.time).toLocaleString()}`}
-                                    </Typography>
-                                </Box>
-                            ))
-                        ) : (
-                            <Typography id="no-notifications-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                                No notifications available.
-                            </Typography>
-                        )}
-                    </Box>
-                ) : (
-                    <TableContainer id="requests-container" component={Paper} sx={{ backgroundColor: 'black', overflowX: 'auto' }}>
-                        {requests.length > 0 ? (
-                            <Table id="requests-table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell id="user-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                                            User
-                                        </TableCell>
-                                        <TableCell id="game-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                                            Game
-                                        </TableCell>
-                                        <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                                            Participants
-                                        </TableCell>
-                                    </TableRow>
-                                </TableHead>
+                                ))
+                            ) : (
+                                <Typography id="no-notifications-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                    No notifications available.
+                                </Typography>
+                            )}
+                        </Box>
+                    ) : (
+                        <TableContainer id="requests-container" component={Paper} sx={{ backgroundColor: 'black', overflowX: 'auto' }}>
+                            {requests.length > 0 ? (
+                                <Table id="requests-table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell id="user-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                                User
+                                            </TableCell>
+                                            <TableCell id="game-column-header" sx={{ color: 'white', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                                Game
+                                            </TableCell>
+                                            <TableCell id="approve-column-header" sx={{ color: 'white', textAlign: 'center', fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                                                Participants
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
                                     <TableBody>
                                         {requests.map((request, index) => (
                                             <TableRow key={index}>
@@ -328,13 +337,14 @@ const NotificationPage = () => {
                                             </TableRow>
                                         ))}
                                     </TableBody>
-                            </Table>
-                        ) : (
-                            <Typography id="no-requests-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                                No participation requests available.
-                            </Typography>
-                        )}
-                    </TableContainer>
+                                </Table>
+                            ) : (
+                                <Typography id="no-requests-text" variant="body1" sx={{ color: 'white', marginBottom: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                    No participation requests available.
+                                </Typography>
+                            )}
+                        </TableContainer>
+                    )
                 )}
             </Box>
         </Box>
