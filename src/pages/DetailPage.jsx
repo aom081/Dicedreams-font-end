@@ -122,6 +122,11 @@ const DetailsPage = () => {
         (participant) => participant.user_id === userId && participant.participant_status === 'approved'
     );
 
+    // Check if the user has a pending participant status
+    const isPendingParticipant = participants.some(
+        (participant) => participant.user_id === userId && participant.participant_status === 'pending'
+    );
+
     if (!event.name_games) {
         return <Typography id="loading-message" variant="h6">Loading...</Typography>;
     }
@@ -154,7 +159,7 @@ const DetailsPage = () => {
                 </Typography>
 
                 <Grid id="actions-grid" container spacing={2} sx={{ marginTop: 3 }}>
-                    {!isOwner && !isApprovedParticipant && (
+                    {!isOwner && !isApprovedParticipant && !isPendingParticipant && (
                         <Grid item xs={12} sm={6}>
                             <Button
                                 id="join-event-button"
@@ -171,6 +176,13 @@ const DetailsPage = () => {
                         <Grid item xs={12} sm={6}>
                             <Typography variant="body1" color="success.main">
                                 คุณได้รับการอนุมัติให้เข้าร่วมกิจกรรมนี้แล้ว
+                            </Typography>
+                        </Grid>
+                    )}
+                    {!isOwner && isPendingParticipant && (
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="body1" color="warning.main">
+                                คุณได้ทำการขอเข้าร่วมแล้วกรุณารอยืนยัน
                             </Typography>
                         </Grid>
                     )}
