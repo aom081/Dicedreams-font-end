@@ -132,7 +132,7 @@ function EventCard(props) {
     const formattedDateMeet = dateMeet ? dayjs(dateMeet).format('MMM DD YYYY') : 'Unknown Date';
     const formattedTimeMeet = timeMeet ? dayjs(timeMeet, 'HH:mm:ss').format('h:mm A') : 'Unknown Time';
 
-    const handleJoinClick = () => {
+    const handleViewClick = () => {
         navigate(`/events/${eventId}`, {
             state: {
                 userId: currentUserId,
@@ -239,7 +239,7 @@ function EventCard(props) {
                                 fontSize: '1rem',
                                 width: '120px'
                             }}
-                            onClick={handleJoinClick}
+                            onClick={handleViewClick}
                             id={`view-button-${eventId}`}
                         >
                             View
@@ -257,7 +257,7 @@ function EventCard(props) {
                                 fontSize: '1rem',
                                 width: '120px'
                             }}
-                            onClick={handleJoinClick}
+                            onClick={handleViewClick}
                             id={`join-button-${eventId}`}
                         >
                             Join
@@ -272,7 +272,7 @@ function EventCard(props) {
                                 fontSize: '1rem',
                                 width: '120px'
                             }}
-                            onClick={handleJoinClick}
+                            onClick={handleViewClick}
                             id={`view-button-${eventId}`}
                         >
                             View
