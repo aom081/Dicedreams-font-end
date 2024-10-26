@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, TextField, Button, Avatar, Snackbar, Alert, AlertTitle, IconButton, Menu, MenuItem } from '@mui/material';
+import {
+    Box, Typography, TextField, Button, Avatar, Snackbar, Alert, AlertTitle, IconButton,
+    Menu, MenuItem, Dialog, DialogActions, DialogContent, DialogTitle
+} from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import dayjs from 'dayjs';
 
@@ -25,6 +28,7 @@ const Chat = ({ userId, username, post_games_id }) => {
     const [editingMessage, setEditingMessage] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
     const [currentMessage, setCurrentMessage] = useState(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const messagesEndRef = useRef(null);
 
     const sendMessage = () => {
@@ -53,8 +57,14 @@ const Chat = ({ userId, username, post_games_id }) => {
         }
     };
 
-    const handleDeleteMessage = (chatId) => {
-        setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== chatId));
+    const handleDeleteMessage = (message) => {
+        setCurrentMessage(message);
+        setOpenDeleteDialog(true); // Open delete confirmation dialog
+    };
+
+    const confirmDeleteMessage = () => {
+        setMessages((prevMessages) => prevMessages.filter((msg) => msg.chat_id !== currentMessage.chat_id));
+        setOpenDeleteDialog(false);
         handleMenuClose();
     };
 
@@ -147,7 +157,7 @@ const Chat = ({ userId, username, post_games_id }) => {
                                         onClose={handleMenuClose}
                                     >
                                         <MenuItem id={`edit-message-${msg.chat_id}`} onClick={() => handleEditMessage(msg)}>Edit</MenuItem>
-                                        <MenuItem id={`delete-message-${msg.chat_id}`} onClick={() => handleDeleteMessage(msg.chat_id)}>Delete</MenuItem>
+                                        <MenuItem id={`delete-message-${msg.chat_id}`} onClick={() => handleDeleteMessage(msg)}>Delete</MenuItem>
                                     </Menu>
                                 </>
                             )}
@@ -185,21 +195,20 @@ const Chat = ({ userId, username, post_games_id }) => {
                             sx={{
                                 backgroundColor: 'yellow',
                                 color: 'black',
-                                '&:hover': { backgroundColor: 'gold' }, // Slightly darker on hover
+                                '&:hover': { backgroundColor: 'gold' },
                             }}
                             onClick={sendMessage}
                         >
                             Update
                         </Button>
-
                         <Button
                             id="cancel-edit-button"
-                            variant="outlined" // Use outlined to make it look transparent
+                            variant="outlined"
                             sx={{
-                                color: 'primary.main', // Text is the primary theme color
-                                borderColor: 'primary.main', // Border is the primary theme color
+                                color: 'primary.main',
+                                borderColor: 'primary.main',
                                 backgroundColor: 'transparent',
-                                '&:hover': { backgroundColor: 'rgba(0, 0, 255, 0.1)' }, // Light blue on hover for effect
+                                '&:hover': { backgroundColor: 'rgba(0, 0, 255, 0.1)' },
                                 marginLeft: 1,
                             }}
                             onClick={cancelEdit}
@@ -213,8 +222,8 @@ const Chat = ({ userId, username, post_games_id }) => {
                         variant="contained"
                         sx={{
                             backgroundColor: 'crimson',
-                            color: 'white'
-                            , '&:hover': { backgroundColor: 'darkred' }
+                            color: 'white',
+                            '&:hover': { backgroundColor: 'darkred' }
                         }}
                         onClick={sendMessage}
                     >
@@ -229,6 +238,23 @@ const Chat = ({ userId, username, post_games_id }) => {
                     {errorMessage}
                 </Alert>
             </Snackbar>
+
+            <Dialog
+                id="delete-confirmation-dialog"
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+            >
+                <DialogTitle>Confirm Delete</DialogTitle>
+                <DialogContent>คุณแน่ใจหรือไม่ว่าต้องการลบข้อความนี้</DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
+                        ยกเลิก
+                    </Button>
+                    <Button onClick={confirmDeleteMessage} color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
